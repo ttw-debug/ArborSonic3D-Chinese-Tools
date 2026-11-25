@@ -1,0 +1,3430 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>ArborSonic 3D 繁體中文實務工具箱（樹種對照 · 力學推算 · 報告轉換）</title>
+<style>
+  :root {
+    --primary: #1b5e20;
+    --primary-mid: #2e7d32;
+    --primary-light: #e8f5e9;
+    --accent: #0f766e;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --border: #94a3b8;
+    --border-light: #e2e8f0;
+    --text: #0f172a;
+    --muted: #475569;
+    --readonly-bg: #e2e8f0;
+    --highlight-bg: #fef9c3;
+    --highlight-border: #eab308;
+    --en-bg: #eff6ff;
+    --en-border: #93c5fd;
+    --sf-green: #8bc34a;
+    --sf-yellow: #fde047;
+    --sf-red: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Microsoft JhengHei", "微軟正黑體", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 18px auto;
+    padding: 0 18px 48px;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #0f766e 100%);
+    color: #fff;
+    padding: 20px 26px;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(27, 94, 32, 0.2);
+    margin-bottom: 16px;
+  }
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .hero h1 {
+    margin: 0;
+    font-size: 21px;
+    letter-spacing: 0.4px;
+  }
+  .hero p {
+    margin: 0;
+    font-size: 13.5px;
+    opacity: 0.94;
+  }
+  .ver-badge {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Main 3-Tab Navigation */
+  .main-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 760px) {
+    .main-nav { grid-template-columns: 1fr; }
+  }
+  .nav-tab {
+    background: #fff;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 12px 16px;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  }
+  .nav-tab:hover {
+    border-color: #66bb6a;
+    background: #f8fafc;
+  }
+  .nav-tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(27, 94, 32, 0.22);
+  }
+  .nav-tab-title {
+    font-size: 15px;
+    font-weight: 700;
+    display: block;
+  }
+  .nav-tab-sub {
+    font-size: 12px;
+    opacity: 0.85;
+    display: block;
+    margin-top: 2px;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Shared UI Elements */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    margin-bottom: 18px;
+  }
+  .card-title {
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .guide-strip {
+    background: #fffbeb;
+    border: 1.5px solid #fcd34d;
+    border-radius: 10px;
+    padding: 11px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #78350f;
+    line-height: 1.6;
+  }
+  .guide-strip code {
+    background: #fef3c7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    color: #92400e;
+  }
+  .hidden { display: none !important; }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #94a3b8;
+    border-radius: 6px;
+    font-size: 13.5px;
+    font-family: inherit;
+    background: #fff;
+    color: #0f172a;
+  }
+  .preset-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .chip {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    color: #334155;
+    transition: all 0.15s;
+  }
+  .chip:hover, .chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .tool-btn {
+    background: #fff;
+    border: 1px solid #94a3b8;
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tool-btn:hover { background: #f1f5f9; }
+  .tool-btn.primary {
+    background: #0f766e;
+    color: #fff;
+    border-color: #0f766e;
+  }
+  .tool-btn.primary:hover { background: #115e59; }
+
+  /* === TAB 1: Tree Species Search & Library === */
+  .search-bar-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .search-input {
+    flex: 1;
+    font-size: 16.5px !important;
+    padding: 11px 15px !important;
+    border: 2px solid var(--primary-mid) !important;
+    border-radius: 10px !important;
+    outline: none;
+  }
+  .search-input:focus {
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+  }
+  .clear-btn {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .clear-btn:hover { background: #cbd5e1; }
+  .quick-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    align-items: center;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .q-chip {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    padding: 3px 11px;
+    font-size: 12.5px;
+    cursor: pointer;
+    color: #1e293b;
+    font-family: inherit;
+  }
+  .q-chip:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-mid);
+    color: var(--primary);
+  }
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .cat-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .cat-btn {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .cat-btn:hover { background: #e2e8f0; }
+  .cat-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .db-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .stats-line {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tree-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 14px;
+  }
+  .tree-card {
+    background: var(--card);
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 15px 16px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .tree-card:hover {
+    border-color: #81c784;
+    transform: translateY(-2px);
+  }
+  .tree-card.verified-card {
+    border-color: #4ade80;
+    background: #fcfffd;
+  }
+  .tree-card.fav {
+    border-color: #f59e0b;
+    background: #fffdf7;
+  }
+  .tc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .tc-zh {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .tc-alias {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .star-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #94a3b8;
+    line-height: 1.2;
+    flex-shrink: 0;
+  }
+  .star-btn.active {
+    color: #d97706;
+    border-color: #fcd34d;
+    background: #fef3c7;
+    font-weight: 700;
+  }
+  .badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: #f1f5f9;
+    color: #334155;
+  }
+  .badge.clade { background: #e0f2fe; color: #0369a1; }
+  .badge.verified { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .badge.sub { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .badge.unverified { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+  .key-box {
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .key-box.latin { background: var(--highlight-bg); border: 1px solid var(--highlight-border); }
+  .key-box.en { background: var(--en-bg); border: 1px solid var(--en-border); }
+  .key-box.en-empty { background: #f8fafc; border: 1px dashed #cbd5e1; }
+  .key-label { font-size: 11px; font-weight: 700; color: #475569; display: block; }
+  .key-val { font-size: 14px; font-weight: 700; color: #0f172a; word-break: break-word; }
+  .key-box.latin .key-val { font-style: italic; color: #713f12; }
+  .copy-btn-group { display: flex; gap: 4px; flex-shrink: 0; }
+  .copy-btn {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #1e293b;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .copy-btn.sub-btn { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+  .copy-btn.sub-btn:hover { background: #d97706; color: #fff; }
+
+  .badge.recommend { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .key-box.sub-box { background: #fff7ed; border: 1px solid #fdba74; }
+  .key-box.sub-box .key-val { color: #9a3412; font-size: 13px; font-style: normal; }
+  .mech-box {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .mech-item { font-size: 12px; }
+  .mech-item span.m-lbl { display: block; font-size: 11px; color: #166534; font-weight: 700; }
+  .mech-item strong { font-size: 13px; color: #0f172a; }
+  .tc-tip {
+    font-size: 12px;
+    color: #334155;
+    background: #f8fafc;
+    border-left: 3px solid #2e7d32;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+  .tc-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px dashed #e2e8f0;
+    font-size: 11.5px;
+    color: #475569;
+  }
+  .tc-actions {
+    display: flex;
+    gap: 5px;
+  }
+  .edit-prop-btn, .send-bio-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .edit-prop-btn:hover { background: #e2e8f0; }
+  .send-bio-btn {
+    background: var(--primary-light);
+    border-color: #81c784;
+    color: var(--primary);
+  }
+  .send-bio-btn:hover {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  /* === TAB 2: Biomechanics Calculator === */
+  .bio-layout {
+    display: grid;
+    grid-template-columns: 1.05fr 1.15fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 960px) {
+    .bio-layout { grid-template-columns: 1fr; }
+  }
+  .active-sp-banner {
+    background: #ecfdf5;
+    border: 1px solid #6ee7b7;
+    color: #065f46;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .input-group { margin-bottom: 12px; }
+  .input-group label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: #1e293b;
+  }
+  .input-group label span.en {
+    font-weight: 400;
+    color: #64748b;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .geom-box {
+    background: var(--primary-light);
+    border: 2px solid #66bb6a;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .scheme-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 540px) {
+    .scheme-tabs { grid-template-columns: repeat(2, 1fr); }
+  }
+  .scheme-btn {
+    background: #fff;
+    border: 1.5px solid #81c784;
+    border-radius: 7px;
+    padding: 6px 4px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #1b5e20;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.25;
+  }
+  .scheme-btn small { display: block; font-weight: 400; font-size: 10.5px; opacity: 0.85; }
+  .scheme-btn:hover { background: #c8e6c9; }
+  .scheme-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .circ-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .circ-row input {
+    width: 135px;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--primary);
+    padding: 6px 10px;
+    border: 2px solid var(--primary-mid);
+    border-radius: 8px;
+    text-align: right;
+  }
+  .sub-panel {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #a5d6a7;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 10px;
+  }
+  .derived-pill {
+    display: block;
+    background: #fff;
+    border: 1px solid #81c784;
+    color: #1b5e20;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    line-height: 1.45;
+  }
+  .warn-note {
+    font-size: 12px;
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    padding: 6px 9px;
+    border-radius: 6px;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  .wind-box {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .hint-box {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #eff6ff;
+    border-left: 3px solid #3b82f6;
+    font-size: 12px;
+    color: #1e3a8a;
+    border-radius: 4px;
+  }
+  .layer-editor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  .layer-editor-table th, .layer-editor-table td {
+    border: 1px solid #cbd5e1;
+    padding: 6px;
+    text-align: center;
+  }
+  .layer-editor-table th { background: #f8fafc; }
+  .layer-editor-table input { width: 68px; padding: 4px; text-align: center; font-size: 13px; }
+  .btn-small {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-small:hover { background: #cbd5e1; }
+  .btn-del { background: #fee2e2; color: #b91c1c; }
+  .btn-del:hover { background: #fecaca; }
+
+  .as-panel {
+    background: #f3f4f6;
+    border: 1.5px solid #9ca3af;
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .as-sec-hdr {
+    background: #d1d5db;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-top: 1px solid #9ca3af;
+    border-bottom: 1px solid #9ca3af;
+    color: #111827;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .as-sec-hdr:first-child { border-top: none; }
+  .as-sec-hdr span.en-tag { font-size: 11.5px; font-weight: 400; color: #4b5563; }
+  .as-row {
+    display: grid;
+    grid-template-columns: 1.35fr 1.05fr 46px 84px;
+    align-items: center;
+    padding: 5px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    gap: 6px;
+  }
+  .as-row.highlight { background: var(--highlight-bg); }
+  .as-lbl { color: #1f2937; font-weight: 500; }
+  .as-lbl small { display: block; color: #6b7280; font-size: 11px; line-height: 1.2; }
+  .as-val-box {
+    background: #fff;
+    border: 1px solid #9ca3af;
+    padding: 4px 8px;
+    text-align: right;
+    font-weight: 700;
+    border-radius: 3px;
+    color: #0f172a;
+  }
+  .as-val-box.readonly { background: var(--readonly-bg); color: #334155; font-weight: 600; }
+  .as-row.highlight .as-val-box {
+    border: 1.5px solid var(--highlight-border);
+    color: #854d0e;
+    background: #fffbeb;
+  }
+  .as-unit { color: #4b5563; font-size: 12px; }
+
+  .as-row input.as-val-input {
+    width: 100%;
+    padding: 4px 8px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    border-radius: 3px;
+  }
+  .as-row.highlight input.as-val-input.manual {
+    border: 2px solid #2563eb;
+    background: #eff6ff;
+    color: #1e3a8a;
+  }
+  .as-btns { display: flex; gap: 3px; justify-content: flex-end; }
+  .reset-mini {
+    background: #fff;
+    border: 1px solid #93c5fd;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+    color: #1d4ed8;
+    font-family: inherit;
+    visibility: hidden;
+  }
+  .reset-mini.show { visibility: visible; }
+  .reset-mini:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .crown-hint {
+    background: #eff6ff;
+    border-bottom: 1px solid #bfdbfe;
+    color: #1e3a8a;
+    font-size: 12px;
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.45;
+  }
+  .copy-mini {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+    color: #334155;
+    font-family: inherit;
+  }
+  .copy-mini:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .as-layers-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 12.5px;
+  }
+  .as-layers-tbl th {
+    background: #f9fafb;
+    border-bottom: 1px solid #9ca3af;
+    border-right: 1px solid #e5e7eb;
+    padding: 5px 4px;
+    font-weight: 600;
+    color: #374151;
+  }
+  .as-layers-tbl td {
+    padding: 5px 4px;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    text-align: center;
+    cursor: pointer;
+  }
+  .as-layers-tbl tr.selected td { background: #2563eb; color: #fff; font-weight: 600; }
+  .sf-banner {
+    padding: 12px 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.35;
+    border-top: 1px solid #9ca3af;
+  }
+  .sf-low { background: var(--sf-green); color: #1a2e05; }
+  .sf-mod { background: var(--sf-yellow); color: #713f12; }
+  .sf-high { background: var(--sf-red); color: #450a0a; }
+  .action-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .btn-main {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn-main:hover { background: var(--primary-mid); }
+  .btn-outline {
+    background: #fff;
+    color: #1e293b;
+    border: 1px solid #94a3b8;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn-outline:hover { background: #f1f5f9; }
+
+  /* === TAB 3: DOCX Translator === */
+  .dropzone {
+    border: 2.5px dashed #81c784;
+    background: var(--primary-light);
+    border-radius: 12px;
+    padding: 42px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--primary);
+    background: #dcedc8;
+    transform: translateY(-1px);
+  }
+  .dropzone-icon { font-size: 42px; margin-bottom: 10px; }
+  .dropzone-title { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+  .dropzone-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 16px; }
+  .docx-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+    font-size: 13px;
+    color: #334155;
+  }
+  .feature-item { background: #f1f5f9; padding: 10px 14px; border-radius: 8px; }
+  .result-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .result-title { font-weight: 700; font-size: 15.5px; color: var(--primary); }
+  .docx-preview-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 13.5px;
+  }
+  .docx-preview-tbl th, .docx-preview-tbl td {
+    border: 1px solid #cbd5e1;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .docx-preview-tbl th { background: #f1f5f9; font-weight: 700; }
+  input.tr-input {
+    width: 72px !important;
+    padding: 4px 6px !important;
+    text-align: center;
+    font-weight: 700;
+  }
+  .badge-warn { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; display: inline-block; }
+  .badge-ok { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; display: inline-block; }
+
+  /* Modals & Toast */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1000;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    max-width: 540px;
+    width: 100%;
+    padding: 22px 24px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 { margin: 0 0 12px; font-size: 18px; color: var(--primary); }
+  .form-row { margin-bottom: 11px; }
+  .form-row label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 1100;
+  }
+  .toast.show { opacity: 1; }
+  .empty-state {
+    grid-column: 1 / -1;
+    background: #fff;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 36px 20px;
+    text-align: center;
+    color: #475569;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>ArborSonic 3D 繁體中文實務工具箱</h1>
+  </div>
+
+  <!-- 依現場作業順序排列的三合一分頁列 -->
+  <div class="main-nav">
+    <button type="button" class="nav-tab active" data-tab="tabSpecies">
+      <span class="nav-tab-title">① 台灣樹種搜尋與收藏庫</span>
+      <span class="nav-tab-sub">繁中查學名 / F3 替代種 / 回填 FAKOPP 官方數值</span>
+    </button>
+    <button type="button" class="nav-tab" data-tab="tabBiomech">
+      <span class="nav-tab-title">② 生物力學參數推算器</span>
+      <span class="nav-tab-sub">支援不規則樹幹修正 · Uniform / EN1991 風載重試算</span>
+    </button>
+    <button type="button" class="nav-tab" data-tab="tabDocx">
+      <span class="nav-tab-title">③ Word 報告繁中轉換器</span>
+      <span class="nav-tab-sub">自動翻譯 .docx 表格並補入 Avg. T/R 殘留壁厚比</span>
+    </button>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- TAB 1: 台灣樹種搜尋與 FAKOPP 官方參數收藏庫                 -->
+  <!-- ========================================================= -->
+  <div id="tabSpecies" class="tab-panel active">
+    <div class="guide-strip">
+    <strong>⚡ 軟體搜尋實戰技巧：</strong>
+    1. 許多樹種在 FAKOPP 內的 <code>Common name</code>（英文俗名）為<strong>空白</strong>（例如 <code>Cocos nucifera</code> 可可椰子、<code>Litchi chinensis</code> 荔枝），請一律優先點擊「<code>📋 複製學名</code>」貼進軟體搜尋框。<br>
+    2. 台灣原生／熱帶樹種（如<strong>小葉欖仁、大葉欖仁、台灣欒樹、黑板樹、台灣相思樹</strong>）若軟體無完全同種，卡片已直接標註「<strong>推薦替代種</strong>」以及「<strong>參考阻力係數 / 參考降伏強度</strong>」，查到官方數據後亦可點「<strong>✏️ 回填軟體數據</strong>」永久儲存。
+  </div>
+
+    <div class="card">
+      <div class="search-bar-wrap">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="請輸入繁體中文樹名、別名、科名、學名或英文（例如：椰子、欖仁、欒樹、黑板樹、相思、荔枝、龍眼、榕樹、樟樹...）"
+          autocomplete="off"
+        />
+        <button type="button" id="clearBtn" class="clear-btn">清除</button>
+      </div>
+
+      <div class="quick-tags">
+      <span>熱門快搜：</span>
+      <button type="button" class="q-chip" data-q="椰子">椰子 (已驗證)</button>
+      <button type="button" class="q-chip" data-q="欖仁">小葉 / 大葉欖仁</button>
+      <button type="button" class="q-chip" data-q="欒樹">台灣欒樹</button>
+      <button type="button" class="q-chip" data-q="黑板樹">黑板樹</button>
+      <button type="button" class="q-chip" data-q="相思">相思木 / 相思樹</button>
+      <button type="button" class="q-chip" data-q="荔枝">荔枝 / 龍眼</button>
+      <button type="button" class="q-chip" data-q="榕">榕樹類</button>
+      <button type="button" class="q-chip" data-q="樟">樟樹</button>
+      <button type="button" class="q-chip" data-q="楓">楓香 / 青楓</button>
+      <button type="button" class="q-chip" data-q="茄苳">茄苳</button>
+      <button type="button" class="q-chip" data-q="松">松樹類</button>
+    </div>
+
+      <div class="filter-bar">
+        <div class="cat-tabs" id="catTabs">
+          <button type="button" class="cat-btn active" data-cat="ALL">全部樹種</button>
+          <button type="button" class="cat-btn" data-cat="VERIFIED">✓ 官方已驗證</button>
+          <button type="button" class="cat-btn" data-cat="FAV">⭐ 我的常用收藏</button>
+          <button type="button" class="cat-btn" data-cat="行道樹">行道樹</button>
+          <button type="button" class="cat-btn" data-cat="公園大樹">公園 / 校園大樹</button>
+          <button type="button" class="cat-btn" data-cat="老樹常見">受保護老樹常見</button>
+          <button type="button" class="cat-btn" data-cat="海岸防風">海岸防風林</button>
+          <button type="button" class="cat-btn" data-cat="Pinophyta">針葉樹</button>
+          <button type="button" class="cat-btn" data-cat="單子葉棕櫚">棕櫚單子葉</button>
+        </div>
+
+        <div class="db-tools">
+          <button type="button" class="tool-btn primary" id="openAddModalBtn">+ 新增樹種</button>
+          <button type="button" class="tool-btn" id="openImportModalBtn">📥 批次匯入</button>
+          <button type="button" class="tool-btn" id="exportJsonBtn" title="將您的自訂樹種與已驗證數值匯出為 JSON 檔，方便在其他電腦還原">💾 備份 JSON</button>
+          <button type="button" class="tool-btn" id="importJsonBtn" title="從 JSON 備份檔還原收藏庫">📂 還原 JSON</button>
+          <input type="file" id="jsonFileInput" accept=".json" style="display:none" />
+          <button type="button" class="tool-btn" id="exportDbBtn">📤 匯出 CSV</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-line">
+      <span id="statsText">載入中...</span>
+      <span>提示：點擊卡片「➡️ 帶入②力學推算」可直接將該樹種參數送入生物力學推算器</span>
+    </div>
+
+    <div id="treeGrid" class="tree-grid"></div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- TAB 2: 生物力學參數推算與繁體中文對照器                     -->
+  <!-- ========================================================= -->
+  <div id="tabBiomech" class="tab-panel">
+    <div class="bio-layout">
+      <!-- 左側：現場實測條件與軟體選項輸入 -->
+      <div class="card">
+        <div class="card-title">
+          <span>1. 現場實測樹幹幾何與環境設定</span>
+        </div>
+
+        <div id="activeSpeciesBanner" class="active-sp-banner hidden">
+          <span id="activeSpeciesText">已套用樹種：</span>
+          <button type="button" class="btn-small" id="clearActiveSpeciesBtn">清除標示</button>
+        </div>
+
+        <!-- 樹幹幾何形狀 Scheme -->
+        <div class="geom-box">
+          <label style="font-size:14.5px; color:#1b5e20; margin-bottom:6px; display:block; font-weight:700;">
+            樹幹橫切面幾何形狀 <span style="font-weight:400; color:#475569; font-size:12px;">(Scheme — 對應軟體感測器幾何選項)</span>
+          </label>
+          <div class="scheme-tabs">
+            <button type="button" class="scheme-btn active" data-scheme="Circle">圓形<small>Circle</small></button>
+            <button type="button" class="scheme-btn" data-scheme="Ellipse">橢圓形<small>Ellipse</small></button>
+            <button type="button" class="scheme-btn" data-scheme="Irregular">不規則形<small>Irregular</small></button>
+            <button type="button" class="scheme-btn" data-scheme="Irregular 3">不規則 3<small>Irregular 3</small></button>
+            <button type="button" class="scheme-btn" data-scheme="Rectangle">矩形/方木<small>Rectangle</small></button>
+          </div>
+
+          <div id="circInputBlock">
+            <label for="circInput" style="font-size:13.5px; color:#1b5e20; font-weight:700; display:block;">
+              實測外圍樹周長 <span style="font-weight:400; color:#475569; font-size:12px;">(Circumference, C)</span>
+            </label>
+            <div class="circ-row">
+              <input type="number" id="circInput" value="350" min="20" max="1500" step="1" />
+              <strong style="font-size:15px;">cm（公分）</strong>
+            </div>
+            <div class="preset-btns">
+              <button type="button" class="chip circ-chip" data-c="80">小樹 80 cm</button>
+              <button type="button" class="chip circ-chip" data-c="130">中型 130 cm</button>
+              <button type="button" class="chip circ-chip" data-c="220">成樹 220 cm</button>
+              <button type="button" class="chip circ-chip active" data-c="350">大樹 350 cm</button>
+              <button type="button" class="chip circ-chip" data-c="450">巨木 450 cm</button>
+            </div>
+          </div>
+
+          <!-- Ellipse -->
+          <div id="ellipseBlock" class="sub-panel hidden">
+            <div style="font-size:12.5px; font-weight:700; color:#1b5e20; margin-bottom:6px;">
+              橢圓形樹幹長短軸量測 <span style="font-weight:400; color:#475569;">(用卡尺量測最大與最小直徑)</span>
+            </div>
+            <div class="grid-2">
+              <div class="input-group" style="margin-bottom:0;">
+                <label for="ellD1Input">長軸直徑 <span class="en">(D1, cm)</span></label>
+                <input type="number" id="ellD1Input" value="125" min="10" max="600" step="0.5" />
+              </div>
+              <div class="input-group" style="margin-bottom:0;">
+                <label for="ellD2Input">短軸直徑 <span class="en">(D2, cm — 最弱受力向)</span></label>
+                <input type="number" id="ellD2Input" value="95" min="10" max="600" step="0.5" />
+              </div>
+            </div>
+            <div style="margin-top:6px;">
+              <button type="button" class="btn-small" id="syncEllCircBtn">依 D1 / D2 自動估算橢圓周長 C</button>
+            </div>
+          </div>
+
+          <!-- Irregular / Irregular 3 -->
+          <div id="irregularBlock" class="sub-panel hidden">
+            <div style="font-size:12.5px; font-weight:700; color:#1b5e20; margin-bottom:6px;">
+              不規則樹幹有效截面修正 <span style="font-weight:400; color:#475569;">(避免板根或縱溝使皮尺周長虛胖)</span>
+            </div>
+            <div class="input-group" style="margin-bottom:8px;">
+              <label for="irregModeSelect">修正計算方式</label>
+              <select id="irregModeSelect">
+                <option value="factor" selected>方式 A：依樹幹外型凹陷／板根程度選用折減係數</option>
+                <option value="span">方式 B：直接輸入卡尺實測「最大跨距 D1」與「最窄跨距 D2」</option>
+              </select>
+            </div>
+
+            <div id="irregFactorSub">
+              <label for="irregFactorInput">不規則截面折減係數 <span class="en">(有效直徑 ÷ 名義周長直徑)</span></label>
+              <input type="number" id="irregFactorInput" value="0.85" min="0.50" max="1.00" step="0.01" />
+              <div class="preset-btns">
+                <button type="button" class="chip irreg-chip" data-f="0.93">輕微不規則 (0.93)</button>
+                <button type="button" class="chip irreg-chip active" data-f="0.85">明顯偏心/凹凸 (0.85)</button>
+                <button type="button" class="chip irreg-chip" data-f="0.75">發達板根/深縱溝 (0.75)</button>
+              </div>
+            </div>
+
+            <div id="irregSpanSub" class="hidden">
+              <div class="grid-2">
+                <div class="input-group" style="margin-bottom:0;">
+                  <label for="irregD1Input">最寬方向跨距 <span class="en">(D1, cm)</span></label>
+                  <input type="number" id="irregD1Input" value="120" min="10" max="600" step="0.5" />
+                </div>
+                <div class="input-group" style="margin-bottom:0;">
+                  <label for="irregD2Input">最窄方向跨距 <span class="en">(D2, cm)</span></label>
+                  <input type="number" id="irregD2Input" value="85" min="10" max="600" step="0.5" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rectangle -->
+          <div id="rectBlock" class="sub-panel hidden">
+            <div style="font-size:12.5px; font-weight:700; color:#1b5e20; margin-bottom:6px;">
+              矩形木構件 / 方木尺寸 <span style="font-weight:400; color:#475569;">(對應軟體 A 與 B 邊長)</span>
+            </div>
+            <div class="grid-2">
+              <div class="input-group" style="margin-bottom:0;">
+                <label for="rectAInput">寬度 <span class="en">(A, cm)</span></label>
+                <input type="number" id="rectAInput" value="80" min="5" max="500" step="0.5" />
+              </div>
+              <div class="input-group" style="margin-bottom:0;">
+                <label for="rectBInput">深度 <span class="en">(B, cm)</span></label>
+                <input type="number" id="rectBInput" value="60" min="5" max="500" step="0.5" />
+              </div>
+            </div>
+          </div>
+
+          <div class="derived-pill" id="geomPill">
+            圓形截面：等效直徑 D = 111.4 cm ｜ 半徑 R = 55.7 cm
+          </div>
+          <div id="geomWarnNote" class="warn-note hidden"></div>
+        </div>
+
+        <!-- Wind 風載重模型選擇 -->
+        <div class="wind-box">
+          <div class="input-group" style="margin-bottom:10px;">
+            <label for="windModelSelect">風載重模型 <span class="en">(Wind model — 對應軟體下拉選單)</span></label>
+            <select id="windModelSelect">
+              <option value="Uniform" selected>Uniform（均勻風載重模型 — 預設）</option>
+              <option value="EN1991">EN1991（歐規 EN 1991-1-4 風載重標準）</option>
+            </select>
+          </div>
+
+          <div id="uniformInputs">
+            <div class="input-group" style="margin-bottom:0;">
+              <label for="windVelInput">設定風速 <span class="en">(Wind velocity, m/s)</span></label>
+              <input type="number" id="windVelInput" value="33" min="5" max="80" step="1" />
+              <div class="preset-btns">
+                <button type="button" class="chip wind-chip active" data-v="33">預設 33 m/s</button>
+                <button type="button" class="chip wind-chip" data-v="40">強風 40 m/s</button>
+                <button type="button" class="chip wind-chip" data-v="45">沿海 45 m/s</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="en1991Inputs" class="hidden">
+            <div class="input-group" style="margin-bottom:10px;">
+              <label for="terrainSelect">地形類別 <span class="en">(Terrain — 對應軟體五種地況選項)</span></label>
+              <select id="terrainSelect">
+                <option value="Seashore">Seashore（海岸 / 海濱開闊區 — 風壓最高）</option>
+                <option value="Lakeside">Lakeside（湖畔 / 開闊水面）</option>
+                <option value="Agriculture">Agriculture（農田 / 開闊田野）</option>
+                <option value="Village">Village（鄉村 / 低矮聚落）</option>
+                <option value="City" selected>City（城市 / 高樓密集遮蔽區 — 風壓最低）</option>
+              </select>
+            </div>
+            <div class="grid-2">
+              <div class="input-group" style="margin-bottom:0;">
+                <label for="baseWindInput">基本風速 <span class="en">(Base wind velocity, m/s)</span></label>
+                <input type="number" id="baseWindInput" value="25" min="10" max="60" step="0.5" />
+                <div class="preset-btns">
+                  <button type="button" class="chip bwind-chip active" data-bv="25">歐規 25 m/s</button>
+                  <button type="button" class="chip bwind-chip" data-bv="32.5">台灣內陸 32.5</button>
+                  <button type="button" class="chip bwind-chip" data-bv="42.5">台灣沿海 42.5</button>
+                </div>
+              </div>
+              <div class="input-group" style="margin-bottom:0;">
+                <label for="airTempInput">乾空氣溫度 <span class="en">(Dry air temp., °C)</span></label>
+                <input type="number" id="airTempInput" value="20" min="-10" max="45" step="1" />
+                <div class="preset-btns">
+                  <button type="button" class="chip temp-chip" data-t="15">15 °C</button>
+                  <button type="button" class="chip temp-chip active" data-t="20">20 °C</button>
+                  <button type="button" class="chip temp-chip" data-t="28">28 °C</button>
+                </div>
+              </div>
+            </div>
+            <div class="hint-box">
+              <strong>EN1991 軟體操作提醒：</strong>選擇 <code>EN1991</code> 時，請在 <code>Crown model</code> 選用 <strong><code>Calculator</code></strong>（點擊計算機圖示輸入右側推算的寬度與高度）或 <code>Drawn</code> 照片描繪。
+            </div>
+          </div>
+        </div>
+
+        <!-- 樹幹傾角與樹種參數 -->
+        <div class="grid-2">
+          <div class="input-group">
+            <label for="leanDegInput">樹幹傾斜角度 <span class="en">(Degree of lean)</span></label>
+            <input type="number" id="leanDegInput" value="90" min="30" max="90" step="1" />
+            <div style="font-size:11.5px; color:#64748b; margin-top:4px;">90° 為完全垂直（預設）</div>
+          </div>
+          <div class="input-group">
+            <label for="leanDirSelect">傾斜方向 <span class="en">(Direction of lean)</span></label>
+            <select id="leanDirSelect">
+              <option value="North" selected>North（北）</option>
+              <option value="North East">North East（東北）</option>
+              <option value="East">East（東）</option>
+              <option value="South East">South East（東南）</option>
+              <option value="South">South（南）</option>
+              <option value="South West">South West（西南）</option>
+              <option value="West">West（西）</option>
+              <option value="North West">North West（西北）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="input-group">
+            <label for="dragInput">阻力係數 <span class="en">(Drag factor)</span></label>
+            <input type="number" id="dragInput" value="0.22" min="0.05" max="1.0" step="0.01" />
+          </div>
+          <div class="input-group">
+            <label for="yieldInput">降伏強度 <span class="en">(Yield strength, MPa)</span></label>
+            <input type="number" id="yieldInput" value="19.7" min="1" max="100" step="0.1" />
+          </div>
+        </div>
+        <div class="preset-btns" style="margin-top:-6px; margin-bottom:14px;">
+          <button type="button" class="chip sp-chip active" data-cd="0.22" data-ys="19.7">預設闊葉 (0.22 / 19.7 MPa)</button>
+          <button type="button" class="chip sp-chip" data-cd="0.25" data-ys="17.0">夜合花 (0.25 / 17.0 MPa)</button>
+          <button type="button" class="chip sp-chip" data-cd="0.30" data-ys="20.0">荔枝 (0.30 / 20.0 MPa)</button>
+        </div>
+
+        <!-- 切面腐朽比例輸入 -->
+        <div class="input-group" style="margin-bottom:0;">
+          <label style="display:flex; justify-content:space-between; align-items:center;">
+            <span>檢測切面資料 <span class="en">(Layers — 輸入斷層圖腐朽面積 %)</span></span>
+            <button type="button" class="btn-small" id="addLayerBtn">+ 新增切面</button>
+          </label>
+          <table class="layer-editor-table">
+            <thead>
+              <tr>
+                <th>切面名稱</th>
+                <th>離地高度 (cm)</th>
+                <th>腐朽面積 (%)</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="layerEditorBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 右側：ArborSonic 3D 繁體中文對照面板 -->
+      <div class="card">
+        <div class="card-title">
+          <span>2. ArborSonic 3D 繁體中文對照面板</span>
+          <span style="font-size:12px; font-weight:600; color:#854d0e; background:#fef9c3; padding:2px 8px; border-radius:6px;">黃底為建議填入軟體之參數</span>
+        </div>
+
+        <div class="as-panel">
+          <div class="as-sec-hdr">
+            <span>感測器幾何形狀設定</span>
+            <span class="en-tag">Sensor Geometry</span>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">幾何形狀 <small>Scheme</small></div>
+            <div class="as-val-box" id="dispScheme">Circle（圓形）</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl" id="lblGeomDim1">外圍樹圍 <small>Circumference (C)</small></div>
+            <div class="as-val-box" id="dispGeomDim1">350.0</div>
+            <div class="as-unit">cm</div>
+            <div><button type="button" class="copy-mini" data-copy="dispGeomDim1">複製</button></div>
+          </div>
+          <div class="as-row hidden" id="rowGeomDim2">
+            <div class="as-lbl" id="lblGeomDim2">長軸 / 短軸 <small>D1 / D2</small></div>
+            <div class="as-val-box readonly" id="dispGeomDim2">125.0 / 95.0</div>
+            <div class="as-unit">cm</div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">有效承重直徑 <small>Effective diameter（用於力學與樹冠推算）</small></div>
+            <div class="as-val-box readonly" id="dispEffDiam">111.4</div>
+            <div class="as-unit">cm</div>
+            <div></div>
+          </div>
+
+          <div class="as-sec-hdr">
+            <span>風載重設定</span>
+            <span class="en-tag">Wind</span>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">風載重模型 <small>Wind model</small></div>
+            <div class="as-val-box" id="dispWindModel">Uniform（均勻風載重）</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+          <div class="as-row" id="rowUniformVel">
+            <div class="as-lbl">風速 <small>Wind velocity</small></div>
+            <div class="as-val-box" id="dispWindVel">33</div>
+            <div class="as-unit">m/s</div>
+            <div><button type="button" class="copy-mini" data-copy="dispWindVel">複製</button></div>
+          </div>
+          <div class="as-row hidden" id="rowEnTerrain">
+            <div class="as-lbl">地形類別 <small>Terrain</small></div>
+            <div class="as-val-box" id="dispTerrain">City（城市）</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+          <div class="as-row hidden" id="rowEnBaseWind">
+            <div class="as-lbl">基本風速 <small>Base wind velocity</small></div>
+            <div class="as-val-box" id="dispBaseWind">25</div>
+            <div class="as-unit">m/s</div>
+            <div><button type="button" class="copy-mini" data-copy="dispBaseWind">複製</button></div>
+          </div>
+          <div class="as-row hidden" id="rowEnAirTemp">
+            <div class="as-lbl">乾空氣溫度 <small>Dry air temp.</small></div>
+            <div class="as-val-box" id="dispAirTemp">20</div>
+            <div class="as-unit">°C</div>
+            <div><button type="button" class="copy-mini" data-copy="dispAirTemp">複製</button></div>
+          </div>
+
+          <div class="as-sec-hdr">
+            <span>樹冠參數（自動推算，亦可輸入已知值）</span>
+            <span class="en-tag">Crown</span>
+          </div>
+          <div class="crown-hint">
+            <span>💡 軟體中已有的數值可直接填入黃底欄位（藍框＝手動輸入）；未填的欄位仍依樹幹自動推算，風力與安全係數會即時重算。</span>
+            <button type="button" class="btn-small" id="resetCrownAllBtn">↺ 全部改回自動</button>
+          </div>
+          <div id="crownNote" class="warn-note hidden" style="margin:6px 10px;"></div>
+          <div class="as-row highlight">
+            <div class="as-lbl">樹冠模型 <small>Crown model（建議選用）</small></div>
+            <div class="as-val-box" id="dispCrownModel">Manual（手動模式）</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+          <div class="as-row highlight" id="rowCrownArea">
+            <div class="as-lbl">樹冠受風面積 <small>Area</small></div>
+            <input type="number" step="any" min="0" class="as-val-box as-val-input" id="dispArea" data-ov="area" value="138" />
+            <div class="as-unit">m²</div>
+            <div class="as-btns"><button type="button" class="reset-mini" data-reset="area" title="還原為自動推算">↺</button><button type="button" class="copy-mini" data-copy="dispArea">複製</button></div>
+          </div>
+          <div class="as-row highlight hidden" id="rowCalcWidth">
+            <div class="as-lbl">計算機：樹冠寬度 <small>Calculator → Crown width</small></div>
+            <input type="number" step="any" min="0" class="as-val-box as-val-input" id="dispCalcW" data-ov="calcW" value="13.7" />
+            <div class="as-unit">m</div>
+            <div class="as-btns"><button type="button" class="reset-mini" data-reset="calcW" title="還原為自動推算">↺</button><button type="button" class="copy-mini" data-copy="dispCalcW">複製</button></div>
+          </div>
+          <div class="as-row highlight hidden" id="rowCalcHeight">
+            <div class="as-lbl">計算機：樹冠高度 <small>Calculator → Crown height (Ellipse)</small></div>
+            <input type="number" step="any" min="0" class="as-val-box as-val-input" id="dispCalcH" data-ov="calcH" value="14" />
+            <div class="as-unit">m</div>
+            <div class="as-btns"><button type="button" class="reset-mini" data-reset="calcH" title="還原為自動推算">↺</button><button type="button" class="copy-mini" data-copy="dispCalcH">複製</button></div>
+          </div>
+          <div class="as-row highlight" id="rowTopH">
+            <div class="as-lbl">樹冠頂部高度 <small>Top height</small></div>
+            <input type="number" step="any" min="0" class="as-val-box as-val-input" id="dispTopH" data-ov="topH" value="18" />
+            <div class="as-unit">m</div>
+            <div class="as-btns"><button type="button" class="reset-mini" data-reset="topH" title="還原為自動推算">↺</button><button type="button" class="copy-mini" data-copy="dispTopH">複製</button></div>
+          </div>
+          <div class="as-row highlight" id="rowCenH">
+            <div class="as-lbl">樹冠中心高度 <small>Center height</small></div>
+            <input type="number" step="any" min="0" class="as-val-box as-val-input" id="dispCenH" data-ov="cenH" value="11" />
+            <div class="as-unit">m</div>
+            <div class="as-btns"><button type="button" class="reset-mini" data-reset="cenH" title="還原為自動推算">↺</button><button type="button" class="copy-mini" data-copy="dispCenH">複製</button></div>
+          </div>
+          <div class="as-row highlight">
+            <div class="as-lbl">樹冠底部高度 <small>Bottom height</small></div>
+            <input type="number" step="any" min="0" class="as-val-box as-val-input" id="dispBotH" data-ov="botH" value="4" />
+            <div class="as-unit">m</div>
+            <div class="as-btns"><button type="button" class="reset-mini" data-reset="botH" title="還原為自動推算">↺</button><button type="button" class="copy-mini" data-copy="dispBotH">複製</button></div>
+          </div>
+
+          <div class="as-sec-hdr">
+            <span>樹幹參數</span>
+            <span class="en-tag">Trunk</span>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">傾斜角度 <small>Degree of lean</small></div>
+            <div class="as-val-box" id="dispLean">90</div>
+            <div class="as-unit">°</div>
+            <div><button type="button" class="copy-mini" data-copy="dispLean">複製</button></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">傾斜方向 <small>Direction of lean</small></div>
+            <div class="as-val-box" id="dispLeanDir">North（北）</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+
+          <div class="as-sec-hdr">
+            <span>樹木力學推算值（軟體自動計算）</span>
+            <span class="en-tag">Tree</span>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">風力負荷 <small>Wind load</small></div>
+            <div class="as-val-box readonly" id="dispWindLoad">21375</div>
+            <div class="as-unit">N</div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">加權中心高度 <small>Weighted center height</small></div>
+            <div class="as-val-box readonly" id="dispWCenter">11</div>
+            <div class="as-unit">m</div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">阻力係數 <small>Drag factor</small></div>
+            <div class="as-val-box readonly" id="dispCd">0.22</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">降伏強度 <small>Yield strength</small></div>
+            <div class="as-val-box readonly" id="dispYs">19.7</div>
+            <div class="as-unit">MPa</div>
+            <div></div>
+          </div>
+
+          <div class="as-sec-hdr">
+            <span>各切面安全評估總表（點擊列檢視明細）</span>
+            <span class="en-tag">Layers</span>
+          </div>
+          <table class="as-layers-tbl">
+            <thead>
+              <tr>
+                <th>切面名稱<br><small>Layer name</small></th>
+                <th>高度<br><small>Height</small></th>
+                <th>腐朽面積<br><small>Decayed</small></th>
+                <th>壁厚比<br><small>Avg. T/R</small></th>
+                <th>安全係數<br><small>Safety</small></th>
+                <th>風險等級<br><small>Risk rating</small></th>
+              </tr>
+            </thead>
+            <tbody id="asLayersBody"></tbody>
+          </table>
+
+          <div class="as-sec-hdr">
+            <span>選定切面詳細力學指標</span>
+            <span class="en-tag">Details of the selected layer</span>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">安全係數 <small>Safety factor</small></div>
+            <div class="as-val-box readonly" id="detSf">1303</div>
+            <div class="as-unit">%</div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">風險等級 <small>Risk rating</small></div>
+            <div class="as-val-box readonly" id="detRisk">低風險 (Low risk)</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">平均殘留壁厚比 <small>Avg. T/R（安全基準 ≥ 0.30）</small></div>
+            <div class="as-val-box readonly" id="detTr">1.00</div>
+            <div class="as-unit"></div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">預估風力矩 <small>M（Bending moment）</small></div>
+            <div class="as-val-box readonly" id="detMoment">205200</div>
+            <div class="as-unit">N·m</div>
+            <div></div>
+          </div>
+          <div class="as-row">
+            <div class="as-lbl">預估最大應力 <small>Max stress</small></div>
+            <div class="as-val-box readonly" id="detStress">1.51</div>
+            <div class="as-unit">MPa</div>
+            <div></div>
+          </div>
+
+          <div id="sfBanner" class="sf-banner sf-low">
+            安全係數 (Safety Factor): 1303 %<br>低風險 (Low risk)
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button type="button" class="btn-main" id="copyAllBtn">📋 一鍵複製完整參數與繁中對照表</button>
+          <button type="button" class="btn-outline" id="exportCsvBtn">📥 匯出 CSV 紀錄表</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- TAB 3: Word 報告 (.docx) 繁體中文轉換器                     -->
+  <!-- ========================================================= -->
+  <div id="tabDocx" class="tab-panel">
+    <div class="card">
+      <div class="card-title">
+        <span>Word 報告 (.docx) 表格繁體中文化與 Avg. T/R 自動補入工具</span>
+        <span style="font-size:12px; color:#0f766e; font-weight:600;">純本機瀏覽器運算 · 檔案不上傳雲端伺服器</span>
+      </div>
+
+      <div id="dropzone" class="dropzone">
+        <div class="dropzone-icon">📄</div>
+        <div class="dropzone-title">將 ArborSonic 3D 匯出的 .docx 報告拖曳到此處</div>
+        <div class="dropzone-sub">支援一次選取或拖曳多份報告，轉換完成後將自動下載「原檔名_繁體中文版.docx」</div>
+        <button type="button" class="btn-main" id="pickBtn">選擇 Word 報告檔 (.docx)</button>
+        <input type="file" id="fileInput" accept=".docx" multiple style="display:none" />
+      </div>
+
+      <div class="docx-features">
+        <div class="feature-item">✅ <strong>表格項目全繁中化</strong>：自動轉換基本資料、現況、生物力學、幾何設定與表頭，並套用微軟正黑體。</div>
+        <div class="feature-item">✅ <strong>自動計算 Avg. T/R</strong>：依公式 <code>1 - √(腐朽比例)</code> 計算殘留壁厚比，直接新增欄位填入報告表格。</div>
+        <div class="feature-item">✅ <strong>原始數據零更動</strong>：完整保留 20×20 時間/波速矩陣、斷層掃描圖、空白欄位與所選參數。</div>
+      </div>
+    </div>
+
+    <div id="resultsContainer"></div>
+  </div>
+</div>
+
+<!-- 回填 / 編輯 FAKOPP 官方 Properties 視窗 -->
+<div id="editPropModal" class="modal-backdrop">
+  <div class="modal">
+    <h2>✏️ 回填 FAKOPP 軟體官方 Properties 數據</h2>
+    <p id="editPropSubtitle" style="font-size:13px; color:#475569; margin-top:0;"></p>
+    <input type="hidden" id="editTargetLatin" />
+    <div class="grid-2">
+      <div class="form-row">
+        <label>軟體內實際 Drag factor（阻力係數）</label>
+        <input type="text" id="editCd" placeholder="例如：0.3 或 0.25" />
+      </div>
+      <div class="form-row">
+        <label>軟體內實際 Yield strength / 強度指標</label>
+        <input type="text" id="editYs" placeholder="例如：17 MPa 或 3.08 ‰" />
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-row">
+        <label>軟體內 Density (green) 生材密度（選填）</label>
+        <input type="text" id="editDensity" placeholder="例如：953 kg/m³" />
+      </div>
+      <div class="form-row">
+        <label>軟體內是否有英文俗名 (Common name)？</label>
+        <select id="editHasEn">
+          <option value="yes">有英文俗名（可用英文搜尋）</option>
+          <option value="no">軟體此欄空白（僅能用拉丁學名搜尋）</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>更新搜尋備註（選填）</label>
+      <input type="text" id="editTip" placeholder="例如：搜尋 Litchi 即可定位，無英文俗名" />
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="tool-btn" id="closeEditPropBtn">取消</button>
+      <button type="button" class="tool-btn primary" id="saveEditPropBtn">儲存為「✓ 官方已驗證」</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增自訂樹種視窗 -->
+<div id="addModal" class="modal-backdrop">
+  <div class="modal">
+    <h2>+ 新增樹種至收藏庫</h2>
+    <div class="grid-2">
+      <div class="form-row">
+        <label>繁體中文名稱 *</label>
+        <input type="text" id="newZh" placeholder="例如：台灣肖楠" />
+      </div>
+      <div class="form-row">
+        <label>別名 / 俗名（選填）</label>
+        <input type="text" id="newAlias" placeholder="例如：黃肉樹、肖楠" />
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-row">
+        <label>拉丁學名 (Latin) *</label>
+        <input type="text" id="newLatin" placeholder="例如：Calocedrus formosana" />
+      </div>
+      <div class="form-row">
+        <label>英文俗名（若軟體空白可留空）</label>
+        <input type="text" id="newEn" placeholder="例如：Taiwan Incense Cedar" />
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-row">
+        <label>ArborSonic 分類門 (Clade)</label>
+        <select id="newClade">
+          <option value="Eudicots">Eudicots（真雙子葉闊葉樹）</option>
+          <option value="Magnoliidae">Magnoliidae（木蘭類 / 樟科 / 木蘭科）</option>
+          <option value="Pinophyta">Pinophyta（裸子植物 / 針葉樹）</option>
+          <option value="Monocotyledons">Monocotyledons（單子葉 / 棕櫚科）</option>
+          <option value="Ginkgophyta">Ginkgophyta（銀杏門）</option>
+          <option value="Cycadophyta">Cycadophyta（蘇鐵門）</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>應用分類標籤</label>
+        <select id="newCat">
+          <option value="行道樹">行道樹</option>
+          <option value="公園大樹">公園大樹</option>
+          <option value="老樹常見">老樹常見</option>
+          <option value="海岸防風">海岸防風</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-row">
+        <label>FAKOPP 阻力係數 (Drag factor)</label>
+        <input type="text" id="newCd" placeholder="若已查到請填（如 0.3），否則留空" />
+      </div>
+      <div class="form-row">
+        <label>FAKOPP 降伏強度 (Yield strength)</label>
+        <input type="text" id="newYs" placeholder="若已查到請填（如 17 MPa），否則留空" />
+      </div>
+    </div>
+    <div class="form-row">
+      <label>軟體搜尋備註（選填）</label>
+      <input type="text" id="newTip" placeholder="例如：輸入學名屬名後按 F3 選取" />
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="tool-btn" id="closeAddModalBtn">取消</button>
+      <button type="button" class="tool-btn primary" id="saveNewTreeBtn">儲存並加入收藏</button>
+    </div>
+  </div>
+</div>
+
+<!-- 批次匯入視窗 -->
+<div id="importModal" class="modal-backdrop">
+  <div class="modal">
+    <h2>📥 批次匯入樹種清單</h2>
+    <p style="font-size:13px; color:#475569; margin-top:0;">
+      依下方格式貼上（每行一筆，欄位以逗號分隔）：<br>
+      <code>繁體中文名稱, 拉丁學名, 英文俗名(可空), 分類門(可略)</code>
+    </p>
+    <div class="form-row">
+      <textarea id="bulkText" rows="7" placeholder="範例：&#10;台灣紅豆杉, Taxus sumatrana, Taiwan Yew, Pinophyta&#10;台灣油杉, Keteleeria davidiana, David Keteleeria, Pinophyta"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="tool-btn" id="closeImportModalBtn">取消</button>
+      <button type="button" class="tool-btn primary" id="runBulkImportBtn">開始匯入收藏</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast">已複製到剪貼簿</div>
+
+<script>
+// =========================================================================
+// SHARED UTILITIES & MAIN TAB NAVIGATION
+// =========================================================================
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function() { t.classList.remove("show"); }, 2200);
+}
+
+function copyText(text, label) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showToast("已複製" + label + "：" + text);
+    });
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast("已複製" + label + "：" + text);
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(new RegExp('"', "g"), "&quot;");
+}
+
+function switchMainTab(tabId) {
+  document.querySelectorAll(".nav-tab").forEach(function(btn) {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+  document.querySelectorAll(".tab-panel").forEach(function(panel) {
+    panel.classList.toggle("active", panel.id === tabId);
+  });
+}
+
+document.querySelectorAll(".nav-tab").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    switchMainTab(btn.dataset.tab);
+  });
+});
+
+// =========================================================================
+// MODULE 1: TAIWAN TREE SPECIES SEARCH & FAKOPP LIBRARY
+// =========================================================================
+const BUILTIN_TREES = [{"zh": "可可椰子（椰子樹）", "alias": "椰子、可可椰", "latin": "Cocos nucifera", "genus": "Cocos", "en": "", "enBlank": true, "clade": "Monocotyledons", "family": "Arecaceae (棕櫚科)", "cat": ["行道樹", "公園大樹", "海岸防風", "單子葉棕櫚"], "status": "verified", "cd": "0.22", "ys": "彈性極限 3.08 ‰（參考抗壓約 15 MPa）", "density": "907 kg/m³", "tip": "【官方已驗證 · 真正的椰子樹】搜尋 coco 第一個選中即為本種（Common name 空白，請用學名搜尋）。按 F3 跳出的 Magnolia coco（夜合花）、Dalbergia retusa（黃檀）、Prunus cocomilia（李樹）皆非椰子樹！"}, {"zh": "夜合花", "alias": "香港玉蘭、夜香木蘭", "latin": "Magnolia coco", "genus": "Magnolia", "en": "coconut magnolia", "enBlank": false, "clade": "Magnoliidae", "family": "Magnoliaceae (木蘭科)", "cat": ["公園大樹"], "status": "verified", "cd": "0.25", "ys": "17.0 MPa（彈性極限 3.4 ‰）", "density": "925 kg/m³", "tip": "【官方已驗證】搜尋 Magnolia coco 或 coconut magnolia；因花帶椰香英文才叫 coconut magnolia，非棕櫚科椰子樹。"}, {"zh": "荔枝", "alias": "離枝", "latin": "Litchi chinensis", "genus": "Litchi", "en": "", "enBlank": true, "clade": "Eudicots", "family": "Sapindaceae (無患子科)", "cat": ["公園大樹", "老樹常見"], "status": "verified", "cd": "0.30", "ys": "彈性極限 3.08 ‰（參考抗壓約 21 MPa）", "density": "953 kg/m³", "tip": "【官方已驗證】Common name 空白，請直接輸入 Litchi 搜尋；亦可作為同科「龍眼」之替代種。"}, {"zh": "山櫻花（緋寒櫻）", "alias": "台灣山櫻、鐘花櫻桃", "latin": "Prunus campanulata", "genus": "Prunus", "en": "Taiwan cherry", "enBlank": false, "clade": "Eudicots", "family": "Rosaceae (薔薇科)", "cat": ["行道樹", "公園大樹"], "status": "verified", "cd": "0.24（櫻屬參考值）", "ys": "20.5 MPa（櫻屬參考值）", "density": "", "tip": "【官方已確認收錄】資料庫內建 Prunus campanulata (Taiwan cherry)，直接搜尋 campanulata 或 Taiwan cherry 即可選用。"}, {"zh": "烏心石", "alias": "台灣含笑、鱸鰻", "latin": "Magnolia compressa", "genus": "Magnolia", "en": "", "enBlank": true, "clade": "Magnoliidae", "family": "Magnoliaceae (木蘭科)", "cat": ["行道樹", "公園大樹"], "status": "verified", "cd": "0.24（木蘭屬參考值）", "ys": "21.0 MPa（木蘭屬參考值）", "density": "", "tip": "【官方已確認收錄】資料庫收錄於 Magnoliidae -> Magnolia compressa（無英文俗名，請直接輸入 compressa 搜尋）。"}, {"zh": "黃玉蘭（金玉蘭）", "alias": "黃蘭、黃緬桂", "latin": "Magnolia champaca", "genus": "Magnolia", "en": "champak", "enBlank": false, "clade": "Magnoliidae", "family": "Magnoliaceae (木蘭科)", "cat": ["行道樹", "公園大樹"], "status": "verified", "cd": "0.25（木蘭屬參考值）", "ys": "18.5 MPa（木蘭屬參考值）", "density": "", "tip": "【官方已確認收錄】資料庫內建 Magnolia champaca (champak)，亦可作為「白玉蘭」之同屬替代種。"}, {"zh": "三角楓", "alias": "三裂槭", "latin": "Acer buergerianum", "genus": "Acer", "en": "Trident Maple", "enBlank": false, "clade": "Eudicots", "family": "Sapindaceae (無患子科)", "cat": ["行道樹", "公園大樹"], "status": "verified", "cd": "0.24（槭樹屬參考值）", "ys": "21.5 MPa（槭樹屬參考值）", "density": "", "tip": "【官方已確認收錄】直接搜尋 Acer buergerianum 或 Trident Maple（位於 Sapindaceae 楓屬 Acer 下），亦可作為「青楓」替代種。"}, {"zh": "檳榔", "alias": "菁仔、賓朗", "latin": "Areca catechu", "genus": "Areca", "en": "", "enBlank": true, "clade": "Monocotyledons", "family": "Arecaceae (棕櫚科)", "cat": ["單子葉棕櫚"], "status": "verified", "cd": "0.20（棕櫚科參考值）", "ys": "15.0 MPa（棕櫚科參考值）", "density": "", "tip": "【官方已確認收錄】位於 Monocotyledons -> Arecaceae -> Areca 下，直接輸入 Areca 搜尋。"}, {"zh": "小葉欖仁", "alias": "細葉欖仁、非洲欖仁、雨傘樹", "latin": "Terminalia mantaly", "subLatin": "Terminalia catappa", "subName": "大葉欖仁 (Terminalia catappa) 或同屬 Terminalia", "genus": "Terminalia", "en": "Madagascar Almond", "enBlank": false, "clade": "Eudicots", "family": "Combretaceae (使君子科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.23（推薦參考值）", "ys": "20.5 MPa（推薦參考值）", "density": "", "tip": "資料庫通常無小葉欖仁 (T. mantaly)，請點「複製替代種」搜 Terminalia catappa 或搜 Terminalia 按 F3；因枝條輪生分層、透風性較大葉欖仁佳，參考阻力係數取 0.23、中等偏硬闊葉木降伏強度取 20.5 MPa。"}, {"zh": "大葉欖仁（欖仁樹）", "alias": "古巴梯斯樹、枇杷樹、欖仁", "latin": "Terminalia catappa", "subLatin": "Terminalia", "subName": "使君子科欖仁屬 (Terminalia) 或一般中硬闊葉樹", "genus": "Terminalia", "en": "Indian Almond / Tropical Almond", "enBlank": false, "clade": "Eudicots", "family": "Combretaceae (使君子科)", "cat": ["行道樹", "公園大樹", "海岸防風"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "19.5 MPa（推薦參考值）", "density": "", "tip": "先搜 Terminalia catappa；若版本未收錄，請搜 Terminalia 按 F3 選同屬種。因葉片寬大受風面較密，推薦參考阻力係數 0.24、參考降伏強度 19.5 MPa。"}, {"zh": "台灣欒樹", "alias": "苦楝舅、四色樹、台灣金雨樹、欒樹", "latin": "Koelreuteria elegans", "subLatin": "Koelreuteria paniculata", "subName": "黃山欒樹 / 復羽葉欒樹 (Koelreuteria paniculata)", "genus": "Koelreuteria", "en": "goldenrain tree", "enBlank": false, "clade": "Eudicots", "family": "Sapindaceae (無患子科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "20.0 MPa（推薦參考值）", "density": "", "tip": "資料庫無台灣原生種 K. elegans，但官方樹狀圖已確認在 Sapindaceae 下收錄同屬種 Koelreuteria paniculata (goldenrain tree)！推薦參考阻力係數 0.24、參考降伏強度 20.0 MPa。"}, {"zh": "黑板樹", "alias": "象皮樹、魔神樹、燈架樹", "latin": "Alstonia scholaris", "subLatin": "Alstonia", "subName": "夾竹桃科雞骨常山屬 (Alstonia) 或輕軟闊葉樹 (如 Bombax / Populus)", "genus": "Alstonia", "en": "Blackboard Tree / Devil Tree", "enBlank": false, "clade": "Eudicots", "family": "Apocynaceae (夾竹桃科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.25（推薦參考值）", "ys": "15.5 MPa（推薦參考值）", "density": "", "tip": "先搜 Alstonia scholaris；若資料庫找不到，因黑板樹生長快速、木質輕軟脆性高（生材比重僅約 0.40–0.45），切勿套用高強度硬木，推薦參考阻力係數 0.25、參考降伏強度 15.5 MPa。"}, {"zh": "台灣相思樹（相思木）", "alias": "相思仔、香絲樹、相思樹", "latin": "Acacia confusa", "subLatin": "Acacia", "subName": "豆科金合歡屬 (Acacia，如 Acacia auriculiformis / Acacia melanoxylon)", "genus": "Acacia", "en": "Taiwan Acacia", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "24.5 MPa（推薦參考值）", "density": "", "tip": "資料庫無台灣原生種 Acacia confusa，請點「屬名」貼上 Acacia 後按 F3 選同屬種。相思木為極高密度重硬木，推薦參考阻力係數 0.24、高強度闊葉木參考降伏強度 24.5 MPa。"}, {"zh": "龍眼", "alias": "桂圓、福圓", "latin": "Dimocarpus longan", "subLatin": "Litchi chinensis", "subName": "同科已驗證：荔枝 (Litchi chinensis)", "genus": "Litchi", "en": "Longan", "enBlank": false, "clade": "Eudicots", "family": "Sapindaceae (無患子科)", "cat": ["公園大樹", "老樹常見"], "status": "recommend", "cd": "0.30（採用同科荔枝官方值）", "ys": "21.5 MPa（參考抗壓｜荔枝彈性極限 3.08 ‰）", "density": "953 kg/m³", "tip": "資料庫無 Dimocarpus longan，實測確認同屬無患子科的「荔枝 (Litchi chinensis)」可直接搜到，木質硬度與樹型高度相近，可直接點「複製替代種」選用。"}, {"zh": "大王椰子", "alias": "王棕、文筆樹", "latin": "Roystonea regia", "subLatin": "Cocos nucifera", "subName": "同科已驗證：可可椰子 (Cocos nucifera)", "genus": "Cocos", "en": "Royal Palm", "enBlank": false, "clade": "Monocotyledons", "family": "Arecaceae (棕櫚科)", "cat": ["行道樹", "公園大樹", "單子葉棕櫚"], "status": "recommend", "cd": "0.22（採用可可椰子官方值）", "ys": "15.0 MPa（棕櫚科參考值）", "density": "907 kg/m³", "tip": "【實機樹狀圖確認】FAKOPP 棕櫚科僅收錄 Areca、Cocos nucifera、Elaeis、Phoenix、Trachycarpus、Washingtonia 六屬，無 Roystonea，請直接點「複製替代種」改用 Cocos nucifera。"}, {"zh": "蒲葵", "alias": "扇葉葵、木葵", "latin": "Livistona chinensis", "subLatin": "Trachycarpus", "subName": "棕櫚科掌狀葉屬 (Trachycarpus) 或 Cocos nucifera", "genus": "Trachycarpus", "en": "Chinese Fan Palm", "enBlank": false, "clade": "Monocotyledons", "family": "Arecaceae (棕櫚科)", "cat": ["行道樹", "公園大樹", "單子葉棕櫚"], "status": "recommend", "cd": "0.22（推薦參考值）", "ys": "15.0 MPa（棕櫚科參考值）", "density": "", "tip": "【實機樹狀圖確認】資料庫無 Livistona，請改搜同為掌狀葉棕櫚的 Trachycarpus（棕櫚屬）或直接選用已驗證的 Cocos nucifera。"}, {"zh": "亞歷山大椰子", "alias": "假檳榔", "latin": "Archontophoenix alexandrae", "subLatin": "Cocos nucifera", "subName": "同科已驗證：可可椰子 (Cocos nucifera) 或 Areca", "genus": "Cocos", "en": "Alexandra Palm / King Palm", "enBlank": false, "clade": "Monocotyledons", "family": "Arecaceae (棕櫚科)", "cat": ["行道樹", "公園大樹", "單子葉棕櫚"], "status": "recommend", "cd": "0.22（採用可可椰子官方值）", "ys": "15.0 MPa（棕櫚科參考值）", "density": "", "tip": "【實機樹狀圖確認】資料庫無 Archontophoenix，請改用同為羽狀複葉棕櫚的 Cocos nucifera（可可椰子）或 Areca（檳榔屬）。"}, {"zh": "華盛頓椰子", "alias": "老人葵、絲葵", "latin": "Washingtonia filifera", "genus": "Washingtonia", "en": "California Fan Palm", "enBlank": false, "clade": "Monocotyledons", "family": "Arecaceae (棕櫚科)", "cat": ["行道樹", "公園大樹", "單子葉棕櫚"], "status": "verified", "cd": "0.22（棕櫚科參考值）", "ys": "14.5 MPa（棕櫚科參考值）", "density": "", "tip": "【官方樹狀圖已確認】Arecaceae 下明確收錄 Washingtonia 屬，直接輸入 Washingtonia 按 F3 即可選用。"}, {"zh": "台灣海棗", "alias": "桄榔、姑婆棕", "latin": "Phoenix hanceana", "subLatin": "Phoenix", "subName": "棕櫚科海棗屬 (Phoenix，如 Phoenix dactylifera)", "genus": "Phoenix", "en": "Taiwan Date Palm", "enBlank": false, "clade": "Monocotyledons", "family": "Arecaceae (棕櫚科)", "cat": ["公園大樹", "海岸防風", "單子葉棕櫚"], "status": "recommend", "cd": "0.22（棕櫚科參考值）", "ys": "15.0 MPa（棕櫚科參考值）", "density": "", "tip": "【官方樹狀圖已確認】Arecaceae 下明確收錄 Phoenix 屬，輸入 Phoenix 按 F3 即可選取同屬海棗。"}, {"zh": "正榕（榕樹）", "alias": "鳥榕、萬年青、細葉榕", "latin": "Ficus microcarpa", "subLatin": "Ficus", "subName": "桑科榕屬 (Ficus，如 Ficus benjamina / Ficus elastica)", "genus": "Ficus", "en": "Chinese Banyan / Curtain Fig", "enBlank": false, "clade": "Eudicots", "family": "Moraceae (桑科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.25（推薦參考值）", "ys": "16.5 MPa（推薦參考值）", "density": "", "tip": "先搜 Ficus microcarpa；若無則點「屬名」貼上 Ficus 按 F3 選同屬種。榕樹樹冠濃密且木質中等偏軟、氣生根多，推薦參考阻力係數 0.25、參考降伏強度 16.5 MPa。"}, {"zh": "雀榕", "alias": "鳥榕、赤榕、山榕", "latin": "Ficus superba", "subLatin": "Ficus", "subName": "桑科榕屬 (Ficus)", "genus": "Ficus", "en": "Sea Fig / Deciduous Fig", "enBlank": false, "clade": "Eudicots", "family": "Moraceae (桑科)", "cat": ["公園大樹", "老樹常見"], "status": "recommend", "cd": "0.25（推薦參考值）", "ys": "16.0 MPa（推薦參考值）", "density": "", "tip": "先搜 Ficus superba；若無則點「屬名」貼上 Ficus 按 F3 選同屬種。推薦參考阻力係數 0.25、參考降伏強度 16.0 MPa。"}, {"zh": "印度橡膠樹", "alias": "印度榕、橡皮樹", "latin": "Ficus elastica", "genus": "Ficus", "en": "India Rubber Fig", "enBlank": false, "clade": "Eudicots", "family": "Moraceae (桑科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.25（推薦參考值）", "ys": "16.5 MPa（推薦參考值）", "density": "", "tip": "輸入 Ficus elastica 或 Rubber 搜尋；若無則搜 Ficus 按 F3。推薦參考阻力係數 0.25、參考降伏強度 16.5 MPa。"}, {"zh": "菩提樹", "alias": "思惟樹、畢缽羅樹", "latin": "Ficus religiosa", "genus": "Ficus", "en": "Sacred Fig / Bo Tree", "enBlank": false, "clade": "Eudicots", "family": "Moraceae (桑科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.25（推薦參考值）", "ys": "17.0 MPa（推薦參考值）", "density": "", "tip": "輸入 Ficus religiosa 搜尋；若無則搜 Ficus 按 F3。推薦參考阻力係數 0.25、參考降伏強度 17.0 MPa。"}, {"zh": "樟樹", "alias": "本樟、香樟、烏樟", "latin": "Cinnamomum camphora", "genus": "Cinnamomum", "en": "Camphor tree", "enBlank": false, "clade": "Magnoliidae", "family": "Lauraceae (樟科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "19.5 MPa（推薦參考值）", "density": "", "tip": "直接輸入 Cinnamomum camphora 或 Camphor 搜尋；若無則搜 Cinnamomum 按 F3。推薦參考阻力係數 0.24、參考降伏強度 19.5 MPa。"}, {"zh": "大葉楠", "alias": "楠木、臭屎楠", "latin": "Machilus japonica var. kusanoi", "subLatin": "Persea", "subName": "樟科鱷梨屬 (Persea) 或樟屬 (Cinnamomum)", "genus": "Persea", "en": "Kusano's Machilus", "enBlank": false, "clade": "Magnoliidae", "family": "Lauraceae (樟科)", "cat": ["公園大樹", "老樹常見"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "18.5 MPa（推薦參考值）", "density": "", "tip": "資料庫通常無台灣楠木屬 (Machilus)，建議改搜同為樟科的 Persea 或 Cinnamomum 按 F3 替代；推薦參考阻力係數 0.24、參考降伏強度 18.5 MPa。"}, {"zh": "白玉蘭（玉蘭花）", "alias": "白蘭、緬桂", "latin": "Magnolia alba", "subLatin": "Magnolia champaca", "subName": "同屬已驗證：黃玉蘭 (Magnolia champaca) 或夜合花 (Magnolia coco)", "genus": "Magnolia", "en": "White Champaca", "enBlank": false, "clade": "Magnoliidae", "family": "Magnoliaceae (木蘭科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.25（推薦參考值）", "ys": "18.0 MPa（推薦參考值）", "density": "", "tip": "資料庫未單列 Magnolia alba，實機已確認收錄同屬近親 Magnolia champaca (champak)，建議直接點「複製替代種」選用；推薦參考阻力係數 0.25、參考降伏強度 18.0 MPa。"}, {"zh": "楓香", "alias": "楓樹、路路通", "latin": "Liquidambar formosana", "subLatin": "Liquidambar", "subName": "蕈樹科楓香屬 (Liquidambar，如北美楓香 L. styraciflua)", "genus": "Liquidambar", "en": "Formosan Sweetgum", "enBlank": false, "clade": "Eudicots", "family": "Altingiaceae (蕈樹科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "20.5 MPa（推薦參考值）", "density": "", "tip": "先搜 Liquidambar formosana；若無則點「屬名」搜 Liquidambar 按 F3 選北美楓香 (L. styraciflua)，材質極相近，推薦參考阻力係數 0.24、參考降伏強度 20.5 MPa。"}, {"zh": "青楓", "alias": "中原氏掌葉槭、五裂槭", "latin": "Acer serrulatum", "subLatin": "Acer buergerianum", "subName": "同屬已驗證：三角楓 (Acer buergerianum) 或同屬 Acer", "genus": "Acer", "en": "Green Maple", "enBlank": false, "clade": "Eudicots", "family": "Sapindaceae (無患子科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "21.0 MPa（推薦參考值）", "density": "", "tip": "資料庫無台灣特有種 Acer serrulatum，請改用已確認收錄的同屬種 Acer buergerianum 或搜 Acer 按 F3；推薦參考阻力係數 0.24、參考降伏強度 21.0 MPa。"}, {"zh": "無患子", "alias": "黃目子、肥皂樹", "latin": "Sapindus saponaria", "genus": "Sapindus", "en": "Soapberry", "enBlank": false, "clade": "Eudicots", "family": "Sapindaceae (無患子科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "20.5 MPa（推薦參考值）", "density": "", "tip": "輸入 Sapindus 按 F3 選取同屬種；推薦參考阻力係數 0.24、參考降伏強度 20.5 MPa。"}, {"zh": "鳳凰木", "alias": "影樹、火樹、金鳳花", "latin": "Delonix regia", "genus": "Delonix", "en": "Royal Poinciana / Flamboyant", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.23（推薦參考值）", "ys": "18.0 MPa（推薦參考值）", "density": "", "tip": "輸入 Delonix regia 或 Flamboyant 搜尋；二回羽狀複葉透風性佳，推薦參考阻力係數 0.23、參考降伏強度 18.0 MPa。"}, {"zh": "阿勃勒", "alias": "黃金雨、波斯皂莢、臘腸樹", "latin": "Cassia fistula", "genus": "Cassia", "en": "Golden Shower Tree", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.23（推薦參考值）", "ys": "21.0 MPa（推薦參考值）", "density": "", "tip": "輸入 Cassia fistula 搜尋；若無則搜 Cassia 按 F3。推薦參考阻力係數 0.23、參考降伏強度 21.0 MPa。"}, {"zh": "盾柱木", "alias": "雙翼豆、黃焰木", "latin": "Peltophorum pterocarpum", "subLatin": "Peltophorum", "subName": "豆科盾柱木屬 (Peltophorum) 或鳳凰木 (Delonix regia)", "genus": "Peltophorum", "en": "Yellow Poinciana", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "20.0 MPa（推薦參考值）", "density": "", "tip": "先搜 Peltophorum 按 F3；若無則改用樹型相近的 Delonix regia。推薦參考阻力係數 0.24、參考降伏強度 20.0 MPa。"}, {"zh": "雨豆樹", "alias": "雨樹、猴pod樹", "latin": "Samanea saman", "subLatin": "Albizia", "subName": "豆科合歡屬 (Albizia，如 Albizia lebbeck)", "genus": "Albizia", "en": "Rain Tree / Monkeypod", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["公園大樹", "老樹常見"], "status": "recommend", "cd": "0.23（推薦參考值）", "ys": "18.5 MPa（推薦參考值）", "density": "", "tip": "先搜 Samanea saman；若無則搜同科近親 Albizia 按 F3 選大葉合歡。推薦參考阻力係數 0.23、參考降伏強度 18.5 MPa。"}, {"zh": "艷紫荊 / 羊蹄甲 / 洋紫荊", "alias": "香港櫻花、宮粉羊蹄甲", "latin": "Bauhinia variegata", "subLatin": "Bauhinia", "subName": "豆科羊蹄甲屬 (Bauhinia)", "genus": "Bauhinia", "en": "Orchid Tree", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "18.5 MPa（推薦參考值）", "density": "", "tip": "艷紫荊 (B. blakeana) 為雜交種資料庫通常未列，直接搜 Bauhinia 按 F3 選 Bauhinia variegata 或 B. purpurea；推薦參考阻力係數 0.24、參考降伏強度 18.5 MPa。"}, {"zh": "水黃皮", "alias": "九重吹、掛錢樹", "latin": "Pongamia pinnata", "subLatin": "Millettia", "subName": "豆科崖豆藤屬 (Millettia) 或刺桐屬", "genus": "Pongamia", "en": "Pongam Tree / Indian Beech", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹", "海岸防風"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "21.0 MPa（推薦參考值）", "density": "", "tip": "先搜 Pongamia pinnata 或 Millettia pinnata；若無則選硬木豆科替代，推薦參考阻力係數 0.24、參考降伏強度 21.0 MPa。"}, {"zh": "印度紫檀", "alias": "青龍木、薔薇木", "latin": "Pterocarpus indicus", "genus": "Pterocarpus", "en": "Burmese Rosewood / Narra", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "23.0 MPa（推薦參考值）", "density": "", "tip": "輸入 Pterocarpus indicus 或 Narra 搜尋；若無則搜 Pterocarpus 按 F3。推薦參考阻力係數 0.24、參考降伏強度 23.0 MPa。"}, {"zh": "鐵刀木", "alias": "暹羅決明", "latin": "Senna siamea", "subLatin": "Cassia", "subName": "豆科決明屬 (Cassia / Senna)", "genus": "Cassia", "en": "Siamese Cassia", "enBlank": false, "clade": "Eudicots", "family": "Fabaceae (豆科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "23.5 MPa（推薦參考值）", "density": "", "tip": "先搜 Senna siamea 或 Cassia siamea；若無則搜 Cassia 按 F3。鐵刀木心材極硬，推薦參考阻力係數 0.24、參考降伏強度 23.5 MPa。"}, {"zh": "苦楝", "alias": "楝樹、苦苓、紫花樹", "latin": "Melia azedarach", "genus": "Melia", "en": "Chinaberry Tree", "enBlank": false, "clade": "Eudicots", "family": "Meliaceae (楝科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.23（推薦參考值）", "ys": "19.5 MPa（推薦參考值）", "density": "", "tip": "輸入 Melia azedarach 或 Chinaberry 搜尋；羽狀複葉透風佳，推薦參考阻力係數 0.23、參考降伏強度 19.5 MPa。"}, {"zh": "大葉桃花心木", "alias": "宏都拉斯桃花心木", "latin": "Swietenia macrophylla", "genus": "Swietenia", "en": "Big-leaf Mahogany", "enBlank": false, "clade": "Eudicots", "family": "Meliaceae (楝科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "22.0 MPa（推薦參考值）", "density": "", "tip": "輸入 Swietenia macrophylla 搜尋；若無則搜 Swietenia 按 F3。推薦參考阻力係數 0.24、參考降伏強度 22.0 MPa。"}, {"zh": "茄苳", "alias": "重陽木、秋楓", "latin": "Bischofia javanica", "genus": "Bischofia", "en": "Bishop Wood", "enBlank": false, "clade": "Eudicots", "family": "Phyllanthaceae (葉下珠科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.25（推薦參考值）", "ys": "20.5 MPa（推薦參考值）", "density": "", "tip": "輸入 Bischofia javanica 搜尋；樹冠圓整濃密且木質堅實，推薦參考阻力係數 0.25、參考降伏強度 20.5 MPa。"}, {"zh": "大花紫薇 / 九芎", "alias": "洋紫薇、猴不爬、小果紫薇", "latin": "Lagerstroemia speciosa", "subLatin": "Lagerstroemia", "subName": "千屈菜科紫薇屬 (Lagerstroemia indica / L. speciosa)", "genus": "Lagerstroemia", "en": "Queen's Crape Myrtle", "enBlank": false, "clade": "Eudicots", "family": "Lythraceae (千屈菜科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "21.5 MPa（推薦參考值）", "density": "", "tip": "九芎 (L. subcostata) 資料庫通常未列，直接搜 Lagerstroemia 按 F3 選大花紫薇或紫薇；推薦參考阻力係數 0.24、參考降伏強度 21.5 MPa。"}, {"zh": "光臘樹（白雞油）", "alias": "白雞油、台灣光臘樹", "latin": "Fraxinus griffithii", "subLatin": "Fraxinus", "subName": "木犀科梣屬 (Fraxinus，資料庫收錄多種白蠟樹)", "genus": "Fraxinus", "en": "Formosan Ash", "enBlank": false, "clade": "Eudicots", "family": "Oleaceae (木犀科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "23.0 MPa（推薦參考值）", "density": "", "tip": "先搜 Fraxinus griffithii；若無則點「屬名」搜 Fraxinus 按 F3 選同屬梣樹。梣屬木材韌性與強度高，推薦參考阻力係數 0.24、參考降伏強度 23.0 MPa。"}, {"zh": "台灣櫸（雞油）", "alias": "櫸木、雞油", "latin": "Zelkova serrata", "genus": "Zelkova", "en": "Japanese Zelkova", "enBlank": false, "clade": "Eudicots", "family": "Ulmaceae (榆科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "24.0 MPa（推薦參考值）", "density": "", "tip": "輸入 Zelkova serrata 搜尋；若無則搜 Zelkova 或同為榆科的 Ulmus（榆屬）。台灣櫸為高強度優質硬木，推薦參考阻力係數 0.24、參考降伏強度 24.0 MPa。"}, {"zh": "朴樹", "alias": "沙朴、石朴", "latin": "Celtis sinensis", "genus": "Celtis", "en": "Chinese Hackberry", "enBlank": false, "clade": "Eudicots", "family": "Cannabaceae (大麻科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "21.0 MPa（推薦參考值）", "density": "", "tip": "輸入 Celtis sinensis 或 Celtis 按 F3 搜尋；推薦參考阻力係數 0.24、參考降伏強度 21.0 MPa。"}, {"zh": "木棉 / 美人樹", "alias": "斑芝樹、英雄樹、美人櫻", "latin": "Bombax ceiba", "subLatin": "Bombax", "subName": "錦葵科木棉屬 (Bombax) 或輕軟闊葉樹", "genus": "Bombax", "en": "Red Silk Cotton Tree", "enBlank": false, "clade": "Eudicots", "family": "Malvaceae (錦葵科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.23（推薦參考值）", "ys": "14.5 MPa（推薦參考值）", "density": "", "tip": "木棉與美人樹皆為極輕軟海綿質木材，切勿套用一般硬闊葉樹強度！推薦參考阻力係數 0.23、低強度參考降伏強度 14.5 MPa。"}, {"zh": "白千層", "alias": "脫皮樹、相思仔", "latin": "Melaleuca leucadendra", "subLatin": "Melaleuca", "subName": "桃金孃科白千層屬 (Melaleuca) 或桉屬 (Eucalyptus)", "genus": "Melaleuca", "en": "Cajeput Tree / Paperbark", "enBlank": false, "clade": "Eudicots", "family": "Myrtaceae (桃金孃科)", "cat": ["行道樹", "公園大樹", "海岸防風"], "status": "recommend", "cd": "0.24（推薦參考值）", "ys": "21.0 MPa（推薦參考值）", "density": "", "tip": "先搜 Melaleuca 按 F3；若無則改用同科桉屬 Eucalyptus 替代。注意海綿狀樹皮極厚，實測時測釘必須完全貫穿樹皮並正確設定 BT 參數，推薦參考阻力係數 0.24、參考降伏強度 21.0 MPa。"}, {"zh": "木賊葉木麻黃（木麻黃）", "alias": "番麻黃、駁骨樹", "latin": "Casuarina equisetifolia", "genus": "Casuarina", "en": "Australian Pine / Horsetail She-oak", "enBlank": false, "clade": "Eudicots", "family": "Casuarinaceae (木麻黃科)", "cat": ["行道樹", "公園大樹", "海岸防風"], "status": "recommend", "cd": "0.22（推薦參考值）", "ys": "23.5 MPa（推薦參考值）", "density": "", "tip": "輸入 Casuarina equisetifolia 搜尋；小枝細長透風性佳且木質極硬，推薦參考阻力係數 0.22、參考降伏強度 23.5 MPa。"}, {"zh": "黑松 / 台灣二葉松 / 五葉松", "alias": "日本黑松、松柏、五鬚松", "latin": "Pinus thunbergii", "subLatin": "Pinus", "subName": "松科松屬 (Pinus — 資料庫收錄數十種松樹)", "genus": "Pinus", "en": "Japanese Black Pine", "enBlank": false, "clade": "Pinophyta", "family": "Pinaceae (松科)", "cat": ["行道樹", "公園大樹", "老樹常見", "海岸防風"], "status": "recommend", "cd": "0.20（針葉樹標準值）", "ys": "20.5 MPa（推薦參考值）", "density": "", "tip": "台灣二葉松與五葉松無單獨建檔時，直接搜 Pinus thunbergii 或搜 Pinus 按 F3 任選松屬樹種即可；針葉樹阻力係數固定為 0.20、參考降伏強度約 20.5 MPa。"}, {"zh": "肯氏南洋杉 / 小葉南洋杉", "alias": "花旗杉、諾福克南洋杉", "latin": "Araucaria cunninghamii", "subLatin": "Araucaria", "subName": "南洋杉科南洋杉屬 (Araucaria)", "genus": "Araucaria", "en": "Hoop Pine", "enBlank": false, "clade": "Pinophyta", "family": "Araucariaceae (南洋杉科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.20（針葉樹標準值）", "ys": "19.5 MPa（推薦參考值）", "density": "", "tip": "輸入 Araucaria 按 F3 選取南洋杉屬；針葉樹阻力係數為 0.20、參考降伏強度 19.5 MPa。"}, {"zh": "落羽松（落羽杉）", "alias": "美國水松", "latin": "Taxodium distichum", "genus": "Taxodium", "en": "Bald Cypress", "enBlank": false, "clade": "Pinophyta", "family": "Cupressaceae (柏科)", "cat": ["行道樹", "公園大樹"], "status": "recommend", "cd": "0.20（針葉樹標準值）", "ys": "19.5 MPa（推薦參考值）", "density": "", "tip": "輸入 Taxodium distichum 或 Bald Cypress 搜尋；針葉樹阻力係數為 0.20、參考降伏強度 19.5 MPa。"}, {"zh": "台灣肖楠 / 紅檜 / 台灣扁柏", "alias": "黃肉樹、薄皮、黃檜", "latin": "Chamaecyparis obtusa", "subLatin": "Chamaecyparis", "subName": "柏科扁柏屬 (Chamaecyparis) 或翠柏屬 (Calocedrus)", "genus": "Chamaecyparis", "en": "Hinoki Cypress", "enBlank": false, "clade": "Pinophyta", "family": "Cupressaceae (柏科)", "cat": ["行道樹", "公園大樹", "老樹常見"], "status": "recommend", "cd": "0.20（針葉樹標準值）", "ys": "21.0 MPa（推薦參考值）", "density": "", "tip": "台灣肖楠與紅檜無單獨建檔時，建議改搜 Chamaecyparis obtusa（扁柏）或 Calocedrus（翠柏屬）按 F3 替代；針葉樹阻力係數 0.20、參考降伏強度 21.0 MPa。"}, {"zh": "銀杏", "alias": "公孫樹、白果樹", "latin": "Ginkgo biloba", "genus": "Ginkgo", "en": "Ginkgo / Maidenhair Tree", "enBlank": false, "clade": "Ginkgophyta", "family": "Ginkgoaceae (銀杏科)", "cat": ["公園大樹", "老樹常見"], "status": "recommend", "cd": "0.23（推薦參考值）", "ys": "19.5 MPa（推薦參考值）", "density": "", "tip": "位於獨立分類門 Ginkgophyta，直接搜尋 Ginkgo biloba 即可；推薦參考阻力係數 0.23、參考降伏強度 19.5 MPa。"}];
+
+const STORAGE_CUSTOM_KEY = "arborsonic_tw_custom_trees_v3";
+const STORAGE_OVERRIDES_KEY = "arborsonic_tw_overrides_v3";
+const STORAGE_FAV_KEY = "arborsonic_tw_fav_latins_v3";
+
+let customTrees = [];
+let overridesMap = {};
+let favSet = new Set();
+let activeCat = "ALL";
+
+function loadLocalData() {
+  try {
+    const savedCustom = JSON.parse(localStorage.getItem(STORAGE_CUSTOM_KEY) || "[]");
+    if (Array.isArray(savedCustom)) customTrees = savedCustom;
+  } catch (e) { customTrees = []; }
+
+  try {
+    const savedOv = JSON.parse(localStorage.getItem(STORAGE_OVERRIDES_KEY) || "{}");
+    if (savedOv && typeof savedOv === "object") overridesMap = savedOv;
+  } catch (e) { overridesMap = {}; }
+
+  try {
+    const savedFav = JSON.parse(localStorage.getItem(STORAGE_FAV_KEY) || "[]");
+    if (Array.isArray(savedFav)) favSet = new Set(savedFav);
+  } catch (e) { favSet = new Set(); }
+}
+
+function saveLocalData() {
+  try {
+    localStorage.setItem(STORAGE_CUSTOM_KEY, JSON.stringify(customTrees));
+    localStorage.setItem(STORAGE_OVERRIDES_KEY, JSON.stringify(overridesMap));
+    localStorage.setItem(STORAGE_FAV_KEY, JSON.stringify(Array.from(favSet)));
+  } catch (e) {}
+}
+
+function getAllTrees() {
+  const combined = customTrees.concat(BUILTIN_TREES);
+  return combined.map(function(item) {
+    const ov = overridesMap[item.latin];
+    if (ov) return Object.assign({}, item, ov);
+    return item;
+  });
+}
+
+function renderTrees() {
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const all = getAllTrees();
+
+  const filtered = all.filter(function(item) {
+    const isFav = favSet.has(item.latin);
+    if (activeCat === "FAV" && !isFav) return false;
+    if (activeCat === "VERIFIED" && item.status !== "verified") return false;
+    if (activeCat !== "ALL" && activeCat !== "FAV" && activeCat !== "VERIFIED") {
+      const inCat = Array.isArray(item.cat) && item.cat.indexOf(activeCat) !== -1;
+      const inClade = item.clade === activeCat;
+      if (!inCat && !inClade) return false;
+    }
+
+    if (!query) return true;
+    const hay = [
+      item.zh,
+      item.alias || "",
+      item.latin,
+      item.subLatin || "",
+      item.subName || "",
+      item.genus || "",
+      item.en || "",
+      item.family || "",
+      item.clade || ""
+    ].join(" ").toLowerCase();
+
+    const tokens = query.split(/\s+/);
+    return tokens.every(function(tok) { return hay.indexOf(tok) !== -1; });
+  });
+
+  filtered.sort(function(a, b) {
+    const fa = favSet.has(a.latin) ? 0 : 1;
+    const fb = favSet.has(b.latin) ? 0 : 1;
+    if (fa !== fb) return fa - fb;
+    const sa = a.status === "verified" ? 0 : 1;
+    const sb = b.status === "verified" ? 0 : 1;
+    return sa - sb;
+  });
+
+  const verifiedCount = all.filter(function(x) { return x.status === "verified"; }).length;
+  document.getElementById("statsText").textContent =
+    "目前顯示 " + filtered.length + " 筆樹種（總收錄：" + all.length + " 種 ｜ ✓ 官方已驗證：" + verifiedCount + " 種 ｜ ★ 常用收藏：" + favSet.size + " 種）";
+
+  const grid = document.getElementById("treeGrid");
+  if (filtered.length === 0) {
+    grid.innerHTML =
+      '<div class="empty-state">' +
+        '<div style="font-size:16px; font-weight:700; margin-bottom:6px;">找不到完全符合「' + escapeHtml(query) + '」的樹種</div>' +
+        '<div style="font-size:13.5px; margin-bottom:12px;">您可以嘗試輸入單一關鍵字（例如只輸入「椰子」、「欖仁」、「欒樹」、「黑板樹」、「相思」），或點擊右上角「+ 新增樹種」自行建檔。</div>' +
+      "</div>";
+    return;
+  }
+
+  grid.innerHTML = filtered.map(function(item) {
+    const isFav = favSet.has(item.latin);
+    const isVer = item.status === "verified";
+    const genus = item.genus || (item.latin.split(" ")[0] || item.latin);
+
+    const statusBadge = isVer
+      ? '<span class="badge verified">✓ FAKOPP 官方已驗證</span>'
+      : '<span class="badge recommend">↪ 推薦替代種與參考力學值</span>';
+
+    const catBadges = (item.cat || []).map(function(c) {
+      return '<span class="badge">' + escapeHtml(c) + "</span>";
+    }).join("");
+
+    // Substitute recommendation block if present
+    let subBoxHtml = "";
+    if (item.subLatin) {
+      subBoxHtml =
+        '<div class="key-box sub-box">' +
+          "<div>" +
+            '<span class="key-label">軟體找不到同種時，推薦改選替代種：</span>' +
+            '<span class="key-val">' + escapeHtml(item.subName || item.subLatin) + "</span>" +
+          "</div>" +
+          '<div class="copy-btn-group">' +
+            '<button type="button" class="copy-btn sub-btn" data-copy="' + escapeHtml(item.subLatin) + '" data-lbl="替代學名">📋 複製替代種</button>' +
+          "</div>" +
+        "</div>";
+    }
+
+    // English box rendering
+    let enBoxHtml = "";
+    if (item.en && item.en.trim() !== "" && !item.enBlank) {
+      const enCopyTarget = item.en.split("/")[0].trim();
+      enBoxHtml =
+        '<div class="key-box en">' +
+          "<div>" +
+            '<span class="key-label">英文俗名 (Common name)</span>' +
+            '<span class="key-val">' + escapeHtml(item.en) + "</span>" +
+          "</div>" +
+          '<div class="copy-btn-group">' +
+            '<button type="button" class="copy-btn" data-copy="' + escapeHtml(enCopyTarget) + '" data-lbl="英文名">📋 複製英文</button>' +
+          "</div>" +
+        "</div>";
+    } else {
+      enBoxHtml =
+        '<div class="key-box en-empty">' +
+          "<div>" +
+            '<span class="key-label">英文俗名 (Common name)</span>' +
+            '<span style="font-size:12px; color:#64748b; font-weight:600;">' +
+              "FAKOPP 軟體內此欄空白，請直接複製上方拉丁學名搜尋" +
+            "</span>" +
+          "</div>" +
+        "</div>";
+    }
+
+    const cdLabel = isVer ? "官方阻力係數 (Drag factor)" : "參考阻力係數 (Drag factor)";
+    const ysLabel = isVer ? "官方強度指標" : "參考降伏強度 (Yield strength)";
+
+    return (
+      '<div class="tree-card' + (isFav ? " fav" : (isVer ? " verified-card" : "")) + '">' +
+        "<div>" +
+          '<div class="tc-top">' +
+            "<div>" +
+              '<div class="tc-zh">' + escapeHtml(item.zh) + "</div>" +
+              '<div class="tc-alias">' +
+                (item.alias ? "別名：" + escapeHtml(item.alias) + " ｜ " : "") +
+                escapeHtml(item.family || "") +
+              "</div>" +
+            "</div>" +
+            '<button type="button" class="star-btn' + (isFav ? " active" : "") + '" data-star="' + escapeHtml(item.latin) + '">' +
+              (isFav ? "★ 已收藏" : "☆ 收藏") +
+            "</button>" +
+          "</div>" +
+          '<div class="badges-row">' +
+            statusBadge +
+            '<span class="badge clade">' + escapeHtml(item.clade) + "</span>" +
+            catBadges +
+          "</div>" +
+          '<div class="key-box latin">' +
+            "<div>" +
+              '<span class="key-label">原始學名 (Latin)</span>' +
+              '<span class="key-val">' + escapeHtml(item.latin) + "</span>" +
+            "</div>" +
+            '<div class="copy-btn-group">' +
+              '<button type="button" class="copy-btn" data-copy="' + escapeHtml(item.latin) + '" data-lbl="學名">📋 複製學名</button>' +
+              '<button type="button" class="copy-btn" data-copy="' + escapeHtml(genus) + '" data-lbl="屬名(F3用)">屬名</button>' +
+            "</div>" +
+          "</div>" +
+          subBoxHtml +
+          enBoxHtml +
+          '<div class="mech-box">' +
+            '<div class="mech-item">' +
+              '<span class="m-lbl">' + cdLabel + "</span>" +
+              "<strong>" + escapeHtml(item.cd || "0.24") + "</strong>" +
+            "</div>" +
+            '<div class="mech-item">' +
+              '<span class="m-lbl">' + ysLabel + "</span>" +
+              "<strong>" + escapeHtml(item.ys || "20.0 MPa") + "</strong>" +
+            "</div>" +
+          "</div>" +
+          '<div class="tc-tip">💡 ' + escapeHtml(item.tip || "") + "</div>" +
+        "</div>" +
+        '<div class="tc-meta">' +
+          "<span>" + (item.density ? "生材密度：" + escapeHtml(item.density) : "可帶入②力學推算器直接套用") + "</span>" +
+          '<div class="tc-actions">' +
+            '<button type="button" class="edit-prop-btn" data-edit="' + escapeHtml(item.latin) + '">✏️ 回填數據</button>' +
+            '<button type="button" class="send-bio-btn" data-send="' + escapeHtml(item.latin) + '">➡️ 帶入②力學推算</button>' +
+          "</div>" +
+        "</div>" +
+      "</div>"
+    );
+  }).join("");
+
+  grid.querySelectorAll(".copy-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      copyText(btn.dataset.copy, btn.dataset.lbl);
+    });
+  });
+
+  grid.querySelectorAll(".star-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      const lat = btn.dataset.star;
+      if (favSet.has(lat)) {
+        favSet.delete(lat);
+        showToast("已從常用收藏移除");
+      } else {
+        favSet.add(lat);
+        showToast("已加入常用收藏 ★");
+      }
+      saveLocalData();
+      renderTrees();
+    });
+  });
+
+  grid.querySelectorAll(".edit-prop-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      openEditPropModal(btn.dataset.edit);
+    });
+  });
+
+  grid.querySelectorAll(".send-bio-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      sendSpeciesToBiomechanics(btn.dataset.send);
+    });
+  });
+}
+
+function sendSpeciesToBiomechanics(latin) {
+  const all = getAllTrees();
+  const item = all.find(function(x) { return x.latin === latin; });
+  if (!item) return;
+
+  const cdMatch = String(item.cd || "").match(/(\d+(?:\.\d+)?)/);
+  const ysMatch = String(item.ys || "").match(/(\d+(?:\.\d+)?)\s*MPa/i);
+
+  if (cdMatch) document.getElementById("dragInput").value = parseFloat(cdMatch[1]);
+  if (ysMatch) document.getElementById("yieldInput").value = parseFloat(ysMatch[1]);
+  document.querySelectorAll(".sp-chip").forEach(function(b) { b.classList.remove("active"); });
+
+  const infoParts = [item.zh + " (" + item.latin + ")"];
+  if (cdMatch) infoParts.push("Drag factor = " + cdMatch[1]);
+  if (ysMatch) infoParts.push("Yield = " + ysMatch[1] + " MPa");
+  document.getElementById("activeSpeciesText").textContent = "已帶入樹種：" + infoParts.join(" ｜ ");
+  document.getElementById("activeSpeciesBanner").classList.remove("hidden");
+
+  switchMainTab("tabBiomech");
+  recalculate();
+  showToast("已將「" + item.zh + "」參數帶入生物力學推算器");
+}
+
+// Edit Official Properties Modal
+const editPropModal = document.getElementById("editPropModal");
+function openEditPropModal(latin) {
+  const all = getAllTrees();
+  const item = all.find(function(x) { return x.latin === latin; });
+  if (!item) return;
+
+  document.getElementById("editTargetLatin").value = item.latin;
+  document.getElementById("editPropSubtitle").textContent =
+    "正在記錄「" + item.zh + " (" + item.latin + ")」在 ArborSonic 3D 軟體 Properties 欄位顯示的官方數值：";
+  document.getElementById("editCd").value = item.cd || "";
+  document.getElementById("editYs").value = item.ys || "";
+  document.getElementById("editDensity").value = item.density || "";
+  document.getElementById("editHasEn").value = item.enBlank ? "no" : "yes";
+  document.getElementById("editTip").value = item.tip || "";
+  editPropModal.classList.add("open");
+}
+
+document.getElementById("closeEditPropBtn").addEventListener("click", function() {
+  editPropModal.classList.remove("open");
+});
+
+document.getElementById("saveEditPropBtn").addEventListener("click", function() {
+  const latin = document.getElementById("editTargetLatin").value;
+  const cdVal = document.getElementById("editCd").value.trim() || "0.24";
+  const ysVal = document.getElementById("editYs").value.trim() || "20.0 MPa";
+  const densityVal = document.getElementById("editDensity").value.trim();
+  const hasEn = document.getElementById("editHasEn").value;
+  const tipVal = document.getElementById("editTip").value.trim();
+
+  const patch = {
+    status: "verified",
+    cd: cdVal,
+    ys: ysVal,
+    density: densityVal,
+    enBlank: hasEn === "no"
+  };
+  if (tipVal) patch.tip = tipVal;
+
+  overridesMap[latin] = Object.assign({}, overridesMap[latin] || {}, patch);
+  favSet.add(latin);
+  saveLocalData();
+  editPropModal.classList.remove("open");
+  showToast("已更新為「✓ FAKOPP 官方已驗證」並加入收藏！");
+  renderTrees();
+});
+
+// Search & Filter Events
+document.getElementById("searchInput").addEventListener("input", renderTrees);
+document.getElementById("clearBtn").addEventListener("click", function() {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("searchInput").focus();
+  renderTrees();
+});
+
+document.querySelectorAll(".q-chip").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.getElementById("searchInput").value = btn.dataset.q;
+    renderTrees();
+  });
+});
+
+document.querySelectorAll(".cat-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".cat-btn").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    activeCat = btn.dataset.cat;
+    renderTrees();
+  });
+});
+
+// Add Modal Events
+const addModal = document.getElementById("addModal");
+document.getElementById("openAddModalBtn").addEventListener("click", function() {
+  addModal.classList.add("open");
+});
+document.getElementById("closeAddModalBtn").addEventListener("click", function() {
+  addModal.classList.remove("open");
+});
+document.getElementById("saveNewTreeBtn").addEventListener("click", function() {
+  const zh = document.getElementById("newZh").value.trim();
+  const alias = document.getElementById("newAlias").value.trim();
+  const latin = document.getElementById("newLatin").value.trim();
+  const en = document.getElementById("newEn").value.trim();
+  const clade = document.getElementById("newClade").value;
+  const cat = document.getElementById("newCat").value;
+  const cd = document.getElementById("newCd").value.trim();
+  const ys = document.getElementById("newYs").value.trim();
+  const tip = document.getElementById("newTip").value.trim();
+
+  if (!zh || !latin) {
+    alert("請至少填寫「繁體中文名稱」與「拉丁學名」！若軟體內無英文俗名，英文欄可留空。");
+    return;
+  }
+
+  const genus = latin.split(/\s+/)[0] || latin;
+  customTrees.unshift({
+    zh: zh,
+    alias: alias,
+    latin: latin,
+    genus: genus,
+    en: en,
+    enBlank: en === "",
+    clade: clade,
+    cat: [cat],
+    status: "verified",
+    cd: cd || "0.24",
+    ys: ys || "20.0 MPa",
+    tip: tip || ("輸入 " + latin + " 或屬名 " + genus + " 按 F3 搜尋")
+  });
+  favSet.add(latin);
+  saveLocalData();
+  addModal.classList.remove("open");
+  ["newZh", "newAlias", "newLatin", "newEn", "newCd", "newYs", "newTip"].forEach(function(id) {
+    document.getElementById(id).value = "";
+  });
+  showToast("已新增並收藏「" + zh + "」！");
+  renderTrees();
+});
+
+// Import Modal Events
+const importModal = document.getElementById("importModal");
+document.getElementById("openImportModalBtn").addEventListener("click", function() {
+  importModal.classList.add("open");
+});
+document.getElementById("closeImportModalBtn").addEventListener("click", function() {
+  importModal.classList.remove("open");
+});
+document.getElementById("runBulkImportBtn").addEventListener("click", function() {
+  const raw = document.getElementById("bulkText").value.trim();
+  if (!raw) return;
+  const lines = raw.split(/\r?\n/);
+  let added = 0;
+  lines.forEach(function(line) {
+    const parts = line.split(/[,，\t]/).map(function(s) { return s.trim(); });
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      const zh = parts[0];
+      const latin = parts[1];
+      const en = parts[2] || "";
+      const clade = parts[3] || "Eudicots";
+      const genus = latin.split(/\s+/)[0] || latin;
+      customTrees.unshift({
+        zh: zh,
+        alias: "",
+        latin: latin,
+        genus: genus,
+        en: en,
+        enBlank: en === "",
+        clade: clade,
+        cat: ["行道樹"],
+        status: "recommend",
+        cd: "0.24（參考值）",
+        ys: "20.0 MPa（參考值）",
+        tip: "批次匯入樹種：輸入 " + latin + " 或 " + genus + " 按 F3"
+      });
+      favSet.add(latin);
+      added++;
+    }
+  });
+  if (added > 0) {
+    saveLocalData();
+    importModal.classList.remove("open");
+    document.getElementById("bulkText").value = "";
+    showToast("成功批次匯入並收藏 " + added + " 筆樹種！");
+    renderTrees();
+  } else {
+    alert("未偵測到有效資料，請確認每行至少包含「中文名, 拉丁學名」。");
+  }
+});
+
+// JSON Backup Export & Restore
+document.getElementById("exportJsonBtn").addEventListener("click", function() {
+  const payload = {
+    app: "ArborSonic3D_TW_Species_Backup_v3",
+    exportedAt: new Date().toISOString(),
+    customTrees: customTrees,
+    overridesMap: overridesMap,
+    favorites: Array.from(favSet)
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "ArborSonic_台灣樹種收藏與驗證備份.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
+  showToast("已匯出 JSON 備份檔！");
+});
+
+document.getElementById("importJsonBtn").addEventListener("click", function() {
+  document.getElementById("jsonFileInput").click();
+});
+
+document.getElementById("jsonFileInput").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (Array.isArray(data.customTrees)) {
+        const existingLatins = new Set(customTrees.map(function(x) { return x.latin; }));
+        data.customTrees.forEach(function(item) {
+          if (item && item.latin && !existingLatins.has(item.latin)) {
+            customTrees.push(item);
+          }
+        });
+      }
+      if (data.overridesMap && typeof data.overridesMap === "object") {
+        overridesMap = Object.assign({}, overridesMap, data.overridesMap);
+      }
+      if (Array.isArray(data.favorites)) {
+        data.favorites.forEach(function(lat) { favSet.add(lat); });
+      }
+      saveLocalData();
+      renderTrees();
+      showToast("已成功從 JSON 備份檔還原收藏資料！");
+    } catch (err) {
+      alert("讀取 JSON 備份檔失敗：" + err.message);
+    }
+  };
+  reader.readAsText(file, "utf-8");
+  e.target.value = "";
+});
+
+// Export CSV
+document.getElementById("exportDbBtn").addEventListener("click", function() {
+  const all = getAllTrees();
+  const rows = [
+    ["狀態", "繁體中文名稱", "別名", "原始學名(Latin)", "推薦替代種", "英文俗名", "分類門(Clade)", "科別", "阻力係數(Drag factor)", "降伏強度/強度指標", "生材密度", "搜尋與替代說明"]
+  ];
+  all.forEach(function(item) {
+    const st = item.status === "verified" ? "FAKOPP官方已驗證" : "推薦替代種與參考值";
+    rows.push([
+      '"' + st + '"',
+      '"' + (item.zh || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.alias || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.latin || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.subName || item.subLatin || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.enBlank ? "(軟體空白)" : (item.en || "")).replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.clade || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.family || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.cd || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.ys || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.density || "").replace(new RegExp('"', "g"), '""') + '"',
+      '"' + (item.tip || "").replace(new RegExp('"', "g"), '""') + '"'
+    ]);
+  });
+  const csvStr = "\uFEFF" + rows.map(function(r) { return r.join(","); }).join("\n");
+  const blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "台灣樹種搜尋與收藏庫_ArborSonic3D對照表.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
+});
+
+
+// =========================================================================
+// MODULE 2: BIOMECHANICS & MULTI-GEOMETRY CALCULATOR
+// =========================================================================
+const SCHEME_INFO = {
+  "Circle":      { zh: "Circle（圓形）" },
+  "Ellipse":     { zh: "Ellipse（橢圓形）" },
+  "Irregular":   { zh: "Irregular（不規則形）" },
+  "Irregular 3": { zh: "Irregular 3（不規則形 3 — 三點測距）" },
+  "Rectangle":   { zh: "Rectangle（矩形 / 方木）" }
+};
+
+const TERRAIN_INFO = {
+  Seashore:    { zh: "Seashore（海岸）",    z0: 0.003, zmin: 1,  kr: 0.156 },
+  Lakeside:    { zh: "Lakeside（湖畔）",    z0: 0.01,  zmin: 1,  kr: 0.170 },
+  Agriculture: { zh: "Agriculture（農田）", z0: 0.05,  zmin: 2,  kr: 0.190 },
+  Village:     { zh: "Village（鄉村）",     z0: 0.3,   zmin: 5,  kr: 0.215 },
+  City:        { zh: "City（城市）",        z0: 1.0,   zmin: 10, kr: 0.234 }
+};
+
+const DIR_ZH = {
+  "North": "North（北）",
+  "North East": "North East（東北）",
+  "East": "East（東）",
+  "South East": "South East（東南）",
+  "South": "South（南）",
+  "South West": "South West（西南）",
+  "West": "West（西）",
+  "North West": "North West（西北）"
+};
+
+let currentScheme = "Circle";
+let layers = [
+  { name: "Layer #1", height: 150, decay: 0 },
+  { name: "Layer #2", height: 140, decay: 0 }
+];
+let selectedLayerIdx = 1;
+
+function getRiskInfo(sfPct) {
+  if (sfPct > 150) return { zh: "低風險", en: "Low risk", cls: "sf-low" };
+  if (sfPct >= 100) return { zh: "中度風險", en: "Moderate risk", cls: "sf-mod" };
+  if (sfPct >= 50) return { zh: "高風險", en: "High risk", cls: "sf-high" };
+  return { zh: "極高風險", en: "Extreme risk", cls: "sf-high" };
+}
+
+function calcEn1991Exposure(terrainKey, zHeight) {
+  const cfg = TERRAIN_INFO[terrainKey] || TERRAIN_INFO.City;
+  const zEff = Math.max(cfg.zmin, Math.min(200, zHeight));
+  const lnVal = Math.log(zEff / cfg.z0);
+  const cr = cfg.kr * lnVal;
+  const iv = 1.0 / lnVal;
+  return cr * cr * (1.0 + 7.0 * iv);
+}
+
+function estimateEllipseCircumference(d1, d2) {
+  const a = d1 / 2.0;
+  const b = d2 / 2.0;
+  return Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
+}
+
+function updateSchemeUI() {
+  const isCircle = currentScheme === "Circle";
+  const isEllipse = currentScheme === "Ellipse";
+  const isIrreg = currentScheme === "Irregular" || currentScheme === "Irregular 3";
+  const isRect = currentScheme === "Rectangle";
+
+  document.getElementById("circInputBlock").classList.toggle("hidden", isRect);
+  document.getElementById("ellipseBlock").classList.toggle("hidden", !isEllipse);
+  document.getElementById("irregularBlock").classList.toggle("hidden", !isIrreg);
+  document.getElementById("rectBlock").classList.toggle("hidden", !isRect);
+
+  const irregMode = document.getElementById("irregModeSelect").value;
+  document.getElementById("irregFactorSub").classList.toggle("hidden", irregMode !== "factor");
+  document.getElementById("irregSpanSub").classList.toggle("hidden", irregMode !== "span");
+
+  document.getElementById("rowGeomDim2").classList.toggle("hidden", isCircle);
+}
+
+function renderLayerEditor() {
+  const tbody = document.getElementById("layerEditorBody");
+  tbody.innerHTML = layers.map(function(ly, idx) {
+    const delBtn = layers.length > 1
+      ? '<button type="button" class="btn-small btn-del" data-del="' + idx + '">刪除</button>'
+      : "-";
+    return (
+      "<tr>" +
+        "<td><strong>" + ly.name + "</strong></td>" +
+        '<td><input type="number" class="ly-h" data-idx="' + idx + '" value="' + ly.height + '" min="10" max="1000" step="10" /></td>' +
+        '<td><input type="number" class="ly-d" data-idx="' + idx + '" value="' + ly.decay + '" min="0" max="95" step="1" /></td>' +
+        "<td>" + delBtn + "</td>" +
+      "</tr>"
+    );
+  }).join("");
+
+  tbody.querySelectorAll(".ly-h").forEach(function(inp) {
+    inp.addEventListener("input", function(e) {
+      const i = parseInt(e.target.dataset.idx, 10);
+      layers[i].height = Math.max(1, parseFloat(e.target.value) || 0);
+      recalculate();
+    });
+  });
+  tbody.querySelectorAll(".ly-d").forEach(function(inp) {
+    inp.addEventListener("input", function(e) {
+      const i = parseInt(e.target.dataset.idx, 10);
+      layers[i].decay = Math.max(0, Math.min(95, parseFloat(e.target.value) || 0));
+      recalculate();
+    });
+  });
+  tbody.querySelectorAll("[data-del]").forEach(function(btn) {
+    btn.addEventListener("click", function(e) {
+      const i = parseInt(e.target.dataset.del, 10);
+      layers.splice(i, 1);
+      layers.forEach(function(l, k) { l.name = "Layer #" + (k + 1); });
+      if (selectedLayerIdx >= layers.length) selectedLayerIdx = layers.length - 1;
+      renderLayerEditor();
+      recalculate();
+    });
+  });
+}
+
+function toggleWindModelUI() {
+  const model = document.getElementById("windModelSelect").value;
+  const isEn = model === "EN1991";
+
+  document.getElementById("uniformInputs").classList.toggle("hidden", isEn);
+  document.getElementById("en1991Inputs").classList.toggle("hidden", !isEn);
+
+  document.getElementById("rowUniformVel").classList.toggle("hidden", isEn);
+  document.getElementById("rowEnTerrain").classList.toggle("hidden", !isEn);
+  document.getElementById("rowEnBaseWind").classList.toggle("hidden", !isEn);
+  document.getElementById("rowEnAirTemp").classList.toggle("hidden", !isEn);
+
+  document.getElementById("rowCrownArea").classList.toggle("hidden", isEn);
+  document.getElementById("rowTopH").classList.toggle("hidden", isEn);
+  document.getElementById("rowCenH").classList.toggle("hidden", isEn);
+  document.getElementById("rowCalcWidth").classList.toggle("hidden", !isEn);
+  document.getElementById("rowCalcHeight").classList.toggle("hidden", !isEn);
+}
+
+const crownOv = { area: null, topH: null, cenH: null, botH: null, calcW: null, calcH: null };
+
+function setCrownField(key, elId, shownVal) {
+  const el = document.getElementById(elId);
+  const isManual = crownOv[key] != null;
+  el.classList.toggle("manual", isManual);
+  const rb = document.querySelector('.reset-mini[data-reset="' + key + '"]');
+  if (rb) rb.classList.toggle("show", isManual);
+  if (document.activeElement !== el) el.value = shownVal;
+}
+
+function recalculate() {
+  const cCm = Math.max(10, parseFloat(document.getElementById("circInput").value) || 100);
+  const nominalDCm = cCm / Math.PI;
+
+  let effDCm = nominalDCm;
+  let wSolidM3 = Math.PI * Math.pow(nominalDCm / 100.0, 3) / 32.0;
+  let geomSummaryText = "";
+  let geomWarnText = "";
+  let dim1Label = "外圍樹圍 <small>Circumference (C)</small>";
+  let dim1Val = cCm.toFixed(1);
+  let dim2Label = "";
+  let dim2Val = "";
+
+  if (currentScheme === "Circle") {
+    effDCm = nominalDCm;
+    wSolidM3 = Math.PI * Math.pow(effDCm / 100.0, 3) / 32.0;
+    geomSummaryText =
+      "圓形截面：等效直徑 D = " + effDCm.toFixed(1) + " cm ｜ 半徑 R = " + (effDCm / 2).toFixed(1) + " cm";
+  } else if (currentScheme === "Ellipse") {
+    const d1 = Math.max(5, parseFloat(document.getElementById("ellD1Input").value) || 125);
+    const d2 = Math.max(5, parseFloat(document.getElementById("ellD2Input").value) || 95);
+    const major = Math.max(d1, d2);
+    const minor = Math.min(d1, d2);
+    effDCm = Math.sqrt(major * minor);
+    wSolidM3 = (Math.PI * (major / 100.0) * Math.pow(minor / 100.0, 2)) / 32.0;
+    geomSummaryText =
+      "橢圓截面：長軸 " + major.toFixed(1) + " cm × 短軸 " + minor.toFixed(1) +
+      " cm ｜ 等效直徑 = " + effDCm.toFixed(1) + " cm";
+    if (major / minor >= 1.2) {
+      geomWarnText =
+        "注意：樹幹呈明顯橢圓（長短軸比 " + (major / minor).toFixed(2) +
+        "），若直接用皮尺周長當真圓算，會高估短軸方向抗彎強度約 " +
+        Math.round((1 - (major * minor * minor) / Math.pow(nominalDCm, 3)) * 100) + "%。";
+    }
+    dim2Label = "長軸 D1 / 短軸 D2 <small>Ellipse axes</small>";
+    dim2Val = major.toFixed(1) + " / " + minor.toFixed(1);
+  } else if (currentScheme === "Irregular" || currentScheme === "Irregular 3") {
+    const irregMode = document.getElementById("irregModeSelect").value;
+    if (irregMode === "factor") {
+      const factor = Math.max(0.4, Math.min(1.0, parseFloat(document.getElementById("irregFactorInput").value) || 0.85));
+      effDCm = nominalDCm * factor;
+      wSolidM3 = Math.PI * Math.pow(effDCm / 100.0, 3) / 32.0;
+      geomSummaryText =
+        "名義周長換算直徑 = " + nominalDCm.toFixed(1) + " cm × 折減係數 " + factor.toFixed(2) +
+        " → 有效承重直徑 = " + effDCm.toFixed(1) + " cm";
+      dim2Label = "不規則截面折減係數 <small>Shape irregularity factor</small>";
+      dim2Val = factor.toFixed(2) + "（折減後 " + effDCm.toFixed(1) + " cm）";
+    } else {
+      const id1 = Math.max(5, parseFloat(document.getElementById("irregD1Input").value) || 120);
+      const id2 = Math.max(5, parseFloat(document.getElementById("irregD2Input").value) || 85);
+      const major = Math.max(id1, id2);
+      const minor = Math.min(id1, id2);
+      effDCm = Math.sqrt(major * minor);
+      wSolidM3 = (Math.PI * (major / 100.0) * Math.pow(minor / 100.0, 2)) / 32.0;
+      geomSummaryText =
+        "名義周長直徑 = " + nominalDCm.toFixed(1) + " cm → 依卡尺跨距 (" +
+        major.toFixed(1) + " × " + minor.toFixed(1) + " cm) 修正有效直徑 = " + effDCm.toFixed(1) + " cm";
+      dim2Label = "實測跨距 D1 / D2 <small>Caliper spans</small>";
+      dim2Val = major.toFixed(1) + " / " + minor.toFixed(1);
+    }
+    const overEstPct = Math.round((1 - Math.pow(effDCm / nominalDCm, 3)) * 100);
+    if (overEstPct > 5) {
+      geomWarnText =
+        "已套用不規則形狀修正：若未修正而直接以皮尺周長 " + cCm +
+        " cm 視為真圓，抗彎剛度將會被高估約 " + overEstPct + "%。";
+    }
+  } else if (currentScheme === "Rectangle") {
+    const rectA = Math.max(5, parseFloat(document.getElementById("rectAInput").value) || 80);
+    const rectB = Math.max(5, parseFloat(document.getElementById("rectBInput").value) || 60);
+    const perim = 2 * (rectA + rectB);
+    const longSide = Math.max(rectA, rectB);
+    const shortSide = Math.min(rectA, rectB);
+    effDCm = Math.sqrt((4 * rectA * rectB) / Math.PI);
+    wSolidM3 = ((longSide / 100.0) * Math.pow(shortSide / 100.0, 2)) / 6.0;
+    geomSummaryText =
+      "矩形截面：" + rectA.toFixed(1) + " × " + rectB.toFixed(1) + " cm（周長 " +
+      perim.toFixed(1) + " cm ｜ 等效圓直徑 = " + effDCm.toFixed(1) + " cm）";
+    dim1Label = "矩形邊長 A × B <small>Rectangle sides</small>";
+    dim1Val = rectA.toFixed(1) + " × " + rectB.toFixed(1);
+    dim2Label = "換算外圍周長 <small>Perimeter</small>";
+    dim2Val = perim.toFixed(1);
+  }
+
+  document.getElementById("geomPill").textContent = geomSummaryText;
+  const warnEl = document.getElementById("geomWarnNote");
+  if (geomWarnText) {
+    warnEl.textContent = geomWarnText;
+    warnEl.classList.remove("hidden");
+  } else {
+    warnEl.classList.add("hidden");
+  }
+
+  document.getElementById("dispScheme").textContent = SCHEME_INFO[currentScheme].zh;
+  document.getElementById("lblGeomDim1").innerHTML = dim1Label;
+  document.getElementById("dispGeomDim1").textContent = dim1Val;
+  if (dim2Label) {
+    document.getElementById("lblGeomDim2").innerHTML = dim2Label;
+    document.getElementById("dispGeomDim2").textContent = dim2Val;
+  }
+  document.getElementById("dispEffDiam").textContent = effDCm.toFixed(1);
+
+  const windModel = document.getElementById("windModelSelect").value;
+  const windV = Math.max(1, parseFloat(document.getElementById("windVelInput").value) || 33);
+  const terrainKey = document.getElementById("terrainSelect").value;
+  const baseWind = Math.max(1, parseFloat(document.getElementById("baseWindInput").value) || 25);
+  const airTemp = parseFloat(document.getElementById("airTempInput").value);
+  const validTemp = isNaN(airTemp) ? 20 : airTemp;
+
+  const leanDeg = Math.max(30, Math.min(90, parseFloat(document.getElementById("leanDegInput").value) || 90));
+  const leanDir = document.getElementById("leanDirSelect").value;
+  const cd = Math.max(0.01, parseFloat(document.getElementById("dragInput").value) || 0.22);
+  const ys = Math.max(0.5, parseFloat(document.getElementById("yieldInput").value) || 19.7);
+
+  const effDM = effDCm / 100.0;
+
+  // ---- 樹冠參數：手動輸入優先，其餘依有效承重直徑推算 ----
+  const ov = crownOv;
+  const isEn = windModel === "EN1991";
+  const fmt1 = function(v) { return Number.isInteger(v) ? v : Number(v.toFixed(1)); };
+  const autoTop = Math.round(Math.max(4, Math.min(32, 16.8 * Math.pow(effDM, 0.55))));
+  let autoBot = Math.round(Math.max(1, Math.min(8, autoTop * 0.22)));
+  if (autoBot >= autoTop - 1) autoBot = Math.max(0.5, autoTop - 2);
+  const autoW = Number((12.8 * Math.pow(effDM, 0.65)).toFixed(1));
+
+  const botH = ov.botH != null ? ov.botH : autoBot;
+  let topH, cenH, crownH, crownW, area;
+  let crownNote = "";
+
+  if (isEn) {
+    crownH = ov.calcH != null ? ov.calcH : Math.max(0.5, autoTop - botH);
+    crownW = ov.calcW != null ? ov.calcW : autoW;
+    topH = botH + crownH;
+    cenH = fmt1(botH + crownH / 2.0);
+    area = Number((Math.max(2, crownH * crownW * (Math.PI / 4.0))).toFixed(1));
+  } else {
+    topH = ov.topH != null ? ov.topH : autoTop;
+    if (topH <= botH) {
+      crownNote = "頂部高度 (" + topH + " m) 須大於底部高度 (" + botH + " m)，已暫以最小樹冠高度 0.5 m 計算，請檢查輸入。";
+    }
+    crownH = Math.max(0.5, topH - botH);
+    crownW = autoW;
+    cenH = ov.cenH != null ? ov.cenH : fmt1((botH + topH) / 2.0);
+    area = ov.area != null ? ov.area : Number((Math.max(2, crownH * crownW * 0.72)).toFixed(1));
+  }
+  const crownNoteEl = document.getElementById("crownNote");
+  crownNoteEl.textContent = crownNote;
+  crownNoteEl.classList.toggle("hidden", !crownNote);
+
+  let windLoad = 0;
+  let rho = 1.293;
+  if (windModel === "Uniform") {
+    windLoad = Math.round(0.5 * rho * Math.pow(windV, 2) * area * cd);
+  } else {
+    rho = 101325.0 / (287.05 * (validTemp + 273.15));
+    const ce = calcEn1991Exposure(terrainKey, cenH);
+    const qb = 0.5 * rho * Math.pow(baseWind, 2);
+    windLoad = Math.round(qb * ce * area * cd);
+  }
+
+  const leanRad = ((90 - leanDeg) * Math.PI) / 180.0;
+  const leanExtraFactor = 1.0 + Math.sin(leanRad) * 0.65;
+
+  document.getElementById("dispWindModel").textContent =
+    windModel === "Uniform" ? "Uniform（均勻風載重）" : "EN1991（歐規標準）";
+  document.getElementById("dispWindVel").textContent = windV;
+  document.getElementById("dispTerrain").textContent = (TERRAIN_INFO[terrainKey] || TERRAIN_INFO.City).zh;
+  document.getElementById("dispBaseWind").textContent = baseWind;
+  document.getElementById("dispAirTemp").textContent = validTemp;
+
+  document.getElementById("dispCrownModel").textContent =
+    windModel === "Uniform" ? "Manual（手動模式）" : "Calculator（計算機模式）";
+  const areaShown = ov.area != null ? ov.area : Math.round(area);
+  setCrownField("area", "dispArea", areaShown);
+  setCrownField("calcW", "dispCalcW", fmt1(crownW));
+  setCrownField("calcH", "dispCalcH", fmt1(crownH));
+  setCrownField("topH", "dispTopH", fmt1(topH));
+  setCrownField("cenH", "dispCenH", cenH);
+  setCrownField("botH", "dispBotH", fmt1(botH));
+
+  document.getElementById("dispLean").textContent = leanDeg;
+  document.getElementById("dispLeanDir").textContent = DIR_ZH[leanDir] || leanDir;
+  document.getElementById("dispWindLoad").textContent = windLoad;
+  document.getElementById("dispWCenter").textContent = cenH;
+  document.getElementById("dispCd").textContent = cd;
+  document.getElementById("dispYs").textContent = ys;
+
+  const computedLayers = layers.map(function(ly) {
+    const zM = ly.height / 100.0;
+    const lever = Math.max(0.5, cenH - zM);
+    const moment = Math.round(windLoad * lever * leanExtraFactor);
+    const decayRatio = Math.max(0, Math.min(0.95, ly.decay / 100.0));
+    const avgTrVal = Math.floor((1.0 - Math.sqrt(decayRatio)) * 100.0 + 1e-9) / 100.0;
+    const wSec = wSolidM3 * (1.0 - Math.pow(decayRatio, 2));
+    const stressMpa = wSec > 0 ? (moment / wSec) / 1e6 : 999;
+    const sfPct = stressMpa > 0 ? Math.round((ys / stressMpa) * 100) : 0;
+    const risk = getRiskInfo(sfPct);
+
+    return {
+      name: ly.name,
+      height: ly.height,
+      decay: ly.decay,
+      avgTr: avgTrVal.toFixed(2),
+      moment: moment,
+      stressMpa: stressMpa.toFixed(2),
+      sfPct: sfPct,
+      risk: risk
+    };
+  });
+
+  const asBody = document.getElementById("asLayersBody");
+  asBody.innerHTML = computedLayers.map(function(cl, idx) {
+    const cls = idx === selectedLayerIdx ? ' class="selected"' : "";
+    return (
+      "<tr" + cls + ' data-sel="' + idx + '">' +
+        "<td>" + cl.name + "</td>" +
+        "<td>" + cl.height + " cm</td>" +
+        "<td>" + cl.decay + " %</td>" +
+        "<td>" + cl.avgTr + "</td>" +
+        "<td>" + cl.sfPct + " %</td>" +
+        "<td>" + cl.risk.zh + "</td>" +
+      "</tr>"
+    );
+  }).join("");
+
+  asBody.querySelectorAll("tr").forEach(function(tr) {
+    tr.addEventListener("click", function() {
+      selectedLayerIdx = parseInt(tr.dataset.sel, 10);
+      recalculate();
+    });
+  });
+
+  const sel = computedLayers[selectedLayerIdx] || computedLayers[0];
+  if (sel) {
+    document.getElementById("detSf").textContent = sel.sfPct;
+    document.getElementById("detRisk").textContent = sel.risk.zh + " (" + sel.risk.en + ")";
+    document.getElementById("detTr").textContent =
+      sel.avgTr + (parseFloat(sel.avgTr) < 0.3 ? "（低於 0.30 警戒線）" : "");
+    document.getElementById("detMoment").textContent = sel.moment;
+    document.getElementById("detStress").textContent = sel.stressMpa;
+  }
+
+  const weakest = computedLayers.reduce(function(min, cur) {
+    return cur.sfPct < min.sfPct ? cur : min;
+  }, computedLayers[0]);
+
+  if (weakest) {
+    const banner = document.getElementById("sfBanner");
+    banner.className = "sf-banner " + weakest.risk.cls;
+    banner.innerHTML =
+      "安全係數 (Safety Factor): " + weakest.sfPct + " %<br>" +
+      weakest.risk.zh + " (" + weakest.risk.en + ")";
+  }
+
+  window._latestState = {
+    scheme: currentScheme,
+    cCm: cCm,
+    nominalDCm: nominalDCm,
+    effDCm: effDCm,
+    geomSummaryText: geomSummaryText,
+    windModel: windModel,
+    windV: windV,
+    terrainKey: terrainKey,
+    baseWind: baseWind,
+    airTemp: validTemp,
+    area: areaShown,
+    crownManual: {
+      area: !isEn && ov.area != null, calcW: isEn && ov.calcW != null, calcH: isEn && ov.calcH != null,
+      topH: !isEn && ov.topH != null, cenH: !isEn && ov.cenH != null, botH: ov.botH != null
+    },
+    crownW: crownW,
+    crownH: crownH,
+    topH: topH,
+    cenH: cenH,
+    botH: botH,
+    leanDeg: leanDeg,
+    leanDir: leanDir,
+    windLoad: windLoad,
+    cd: cd,
+    ys: ys,
+    computedLayers: computedLayers
+  };
+}
+
+document.getElementById("clearActiveSpeciesBtn").addEventListener("click", function() {
+  document.getElementById("activeSpeciesBanner").classList.add("hidden");
+});
+
+document.querySelectorAll(".scheme-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".scheme-btn").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    currentScheme = btn.dataset.scheme;
+    updateSchemeUI();
+    recalculate();
+  });
+});
+
+document.getElementById("irregModeSelect").addEventListener("change", function() {
+  updateSchemeUI();
+  recalculate();
+});
+
+document.getElementById("syncEllCircBtn").addEventListener("click", function() {
+  const d1 = Math.max(5, parseFloat(document.getElementById("ellD1Input").value) || 125);
+  const d2 = Math.max(5, parseFloat(document.getElementById("ellD2Input").value) || 95);
+  const estC = estimateEllipseCircumference(d1, d2);
+  document.getElementById("circInput").value = estC.toFixed(1);
+  document.querySelectorAll(".circ-chip").forEach(function(b) { b.classList.remove("active"); });
+  recalculate();
+  showToast("已依橢圓長短軸估算周長 C = " + estC.toFixed(1) + " cm");
+});
+
+document.querySelectorAll(".irreg-chip").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".irreg-chip").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("irregFactorInput").value = btn.dataset.f;
+    recalculate();
+  });
+});
+
+document.getElementById("irregFactorInput").addEventListener("input", function() {
+  document.querySelectorAll(".irreg-chip").forEach(function(b) { b.classList.remove("active"); });
+  recalculate();
+});
+
+["ellD1Input", "ellD2Input", "irregD1Input", "irregD2Input", "rectAInput", "rectBInput"].forEach(function(id) {
+  document.getElementById(id).addEventListener("input", recalculate);
+});
+
+document.getElementById("windModelSelect").addEventListener("change", function() {
+  toggleWindModelUI();
+  recalculate();
+});
+document.getElementById("terrainSelect").addEventListener("change", recalculate);
+document.getElementById("leanDirSelect").addEventListener("change", recalculate);
+
+document.getElementById("circInput").addEventListener("input", function() {
+  document.querySelectorAll(".circ-chip").forEach(function(b) { b.classList.remove("active"); });
+  recalculate();
+});
+document.getElementById("windVelInput").addEventListener("input", function() {
+  document.querySelectorAll(".wind-chip").forEach(function(b) { b.classList.remove("active"); });
+  recalculate();
+});
+document.getElementById("baseWindInput").addEventListener("input", function() {
+  document.querySelectorAll(".bwind-chip").forEach(function(b) { b.classList.remove("active"); });
+  recalculate();
+});
+document.getElementById("airTempInput").addEventListener("input", function() {
+  document.querySelectorAll(".temp-chip").forEach(function(b) { b.classList.remove("active"); });
+  recalculate();
+});
+["leanDegInput", "dragInput", "yieldInput"].forEach(function(id) {
+  document.getElementById(id).addEventListener("input", recalculate);
+});
+
+document.querySelectorAll(".circ-chip").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".circ-chip").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("circInput").value = btn.dataset.c;
+    recalculate();
+  });
+});
+
+document.querySelectorAll(".wind-chip").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".wind-chip").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("windVelInput").value = btn.dataset.v;
+    recalculate();
+  });
+});
+
+document.querySelectorAll(".bwind-chip").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".bwind-chip").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("baseWindInput").value = btn.dataset.bv;
+    recalculate();
+  });
+});
+
+document.querySelectorAll(".temp-chip").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".temp-chip").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("airTempInput").value = btn.dataset.t;
+    recalculate();
+  });
+});
+
+document.querySelectorAll(".sp-chip").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".sp-chip").forEach(function(b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("dragInput").value = btn.dataset.cd;
+    document.getElementById("yieldInput").value = btn.dataset.ys;
+    recalculate();
+  });
+});
+
+document.getElementById("addLayerBtn").addEventListener("click", function() {
+  const nextNum = layers.length + 1;
+  const lastH = layers.length ? Math.max(20, layers[layers.length - 1].height - 10) : 130;
+  layers.push({ name: "Layer #" + nextNum, height: lastH, decay: 0 });
+  selectedLayerIdx = layers.length - 1;
+  renderLayerEditor();
+  recalculate();
+});
+
+document.querySelectorAll(".as-val-input").forEach(function(inp) {
+  inp.addEventListener("input", function() {
+    const v = parseFloat(inp.value);
+    crownOv[inp.dataset.ov] = (inp.value.trim() !== "" && !isNaN(v) && v > 0) ? v : null;
+    recalculate();
+  });
+  inp.addEventListener("blur", recalculate);
+});
+document.querySelectorAll(".reset-mini").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    crownOv[btn.dataset.reset] = null;
+    recalculate();
+  });
+});
+document.getElementById("resetCrownAllBtn").addEventListener("click", function() {
+  Object.keys(crownOv).forEach(function(k) { crownOv[k] = null; });
+  recalculate();
+  showToast("樹冠參數已全部改回自動推算");
+});
+
+document.querySelectorAll(".copy-mini").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    const srcEl = document.getElementById(btn.dataset.copy);
+    const val = (srcEl.tagName === "INPUT" ? srcEl.value : srcEl.textContent).trim();
+    copyText(val, "數值");
+  });
+});
+
+document.getElementById("copyAllBtn").addEventListener("click", function() {
+  const s = window._latestState;
+  if (!s) return;
+  const mk = function(k) { return s.crownManual && s.crownManual[k] ? "（手動輸入）" : ""; };
+  const windLines = s.windModel === "Uniform"
+    ? [
+        "• 風載重模型 (Wind model)：Uniform",
+        "• 風速 (Wind velocity)：" + s.windV + " m/s"
+      ]
+    : [
+        "• 風載重模型 (Wind model)：EN1991",
+        "• 地形類別 (Terrain)：" + s.terrainKey,
+        "• 基本風速 (Base wind velocity)：" + s.baseWind + " m/s",
+        "• 乾空氣溫度 (Dry air temp.)：" + s.airTemp + " °C"
+      ];
+  const crownLines = s.windModel === "Uniform"
+    ? [
+        "• 樹冠模型 (Crown model)：Manual",
+        "• 面積 (Area)：" + s.area + " m²" + mk("area"),
+        "• 頂部高度 (Top height)：" + s.topH + " m" + mk("topH"),
+        "• 中心高度 (Center height)：" + s.cenH + " m" + mk("cenH"),
+        "• 底部高度 (Bottom height)：" + s.botH + " m" + mk("botH")
+      ]
+    : [
+        "• 樹冠模型 (Crown model)：Calculator（寬 " + s.crownW + " m" + mk("calcW") + " × 高 " + s.crownH + " m" + mk("calcH") + "，Ellipse）",
+        "• 底部高度 (Bottom height)：" + s.botH + " m" + mk("botH")
+      ];
+
+  const lines = [
+    "【ArborSonic 3D 生物力學參數設定與繁中對照】",
+    "• 樹幹幾何形狀 (Scheme)：" + s.scheme,
+    "• 截面尺寸摘要：" + s.geomSummaryText,
+    "----------------------------------------",
+    "[風載重 Wind]"
+  ].concat(windLines, ["[樹冠 Crown — 依有效承重直徑推算]"], crownLines, [
+    "[樹幹 Trunk]",
+    "• 傾斜角度 (Degree of lean)：" + s.leanDeg + " °",
+    "• 傾斜方向 (Direction of lean)：" + s.leanDir,
+    "[樹木力學參數 Tree]",
+    "• 預估風力負荷 (Wind load)：" + s.windLoad + " N",
+    "• 加權中心高度 (Weighted center height)：" + s.cenH + " m",
+    "• 阻力係數 (Drag factor)：" + s.cd,
+    "• 降伏強度 (Yield strength)：" + s.ys + " MPa",
+    "[切面安全評估總表 Layers]"
+  ], s.computedLayers.map(function(l) {
+    return "• " + l.name + "（高度 " + l.height + " cm）：腐朽 " + l.decay + "% ｜ Avg. T/R = " + l.avgTr + " ｜ 安全係數 " + l.sfPct + "%（" + l.risk.zh + " / " + l.risk.en + "）";
+  }));
+
+  copyText(lines.join("\n"), "完整參數表");
+});
+
+document.getElementById("exportCsvBtn").addEventListener("click", function() {
+  const s = window._latestState;
+  if (!s) return;
+  const rows = [
+    ["項目名稱(繁中)", "原軟體欄位(英文)", "數值", "單位"],
+    ["幾何形狀", "Scheme", s.scheme, ""],
+    ["外圍樹幹圓周長", "Circumference", s.cCm, "cm"],
+    ["有效承重直徑", "Effective Diameter", s.effDCm.toFixed(1), "cm"],
+    ["風載重模型", "Wind model", s.windModel, ""]
+  ];
+  if (s.windModel === "Uniform") {
+    rows.push(["風速", "Wind velocity", s.windV, "m/s"]);
+  } else {
+    rows.push(["地形類別", "Terrain", s.terrainKey, ""]);
+    rows.push(["基本風速", "Base wind velocity", s.baseWind, "m/s"]);
+    rows.push(["乾空氣溫度", "Dry air temp.", s.airTemp, "°C"]);
+  }
+  rows.push(
+    ["樹冠受風面積", "Area", s.area, "m2"],
+    ["樹冠寬度(計算機)", "Crown width", s.crownW, "m"],
+    ["樹冠高度(計算機)", "Crown height", s.crownH, "m"],
+    ["樹冠頂部高度", "Top height", s.topH, "m"],
+    ["樹冠中心高度", "Center height", s.cenH, "m"],
+    ["樹冠底部高度", "Bottom height", s.botH, "m"],
+    ["傾斜角度", "Degree of lean", s.leanDeg, "°"],
+    ["傾斜方向", "Direction of lean", s.leanDir, ""],
+    ["預估風力負荷", "Wind load", s.windLoad, "N"],
+    ["阻力係數", "Drag factor", s.cd, ""],
+    ["降伏強度", "Yield strength", s.ys, "MPa"],
+    [],
+    ["切面名稱", "離地高度(cm)", "腐朽面積(%)", "平均殘留壁厚比(Avg. T/R)", "預估安全係數(%)", "風險等級"]
+  );
+  s.computedLayers.forEach(function(l) {
+    rows.push([l.name, l.height, l.decay, l.avgTr, l.sfPct, l.risk.zh + " (" + l.risk.en + ")"]);
+  });
+  const csvStr = "\uFEFF" + rows.map(function(r) { return r.join(","); }).join("\n");
+  const blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "ArborSonic_生物力學參數推算_" + s.scheme + "_樹圍" + s.cCm + "cm.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
+});
+
+// =========================================================================
+// MODULE 3: WORD REPORT (.DOCX) TRADITIONAL CHINESE TRANSLATOR & AVG T/R
+// =========================================================================
+const ITEM_TRANSLATIONS = {
+  "Tree location": "樹木位置",
+  "Measurement date": "量測日期",
+  "Tree identifier": "樹木編號",
+  "Project identifier": "專案編號",
+  "Trunk diameter at 4 feet": "4 英尺處樹幹直徑",
+  "Status report": "狀況報告",
+  "Root status": "根部狀況",
+  "Root collar status": "根領狀況",
+  "Trunk status": "樹幹狀況",
+  "Crown collar status": "樹冠基部狀況",
+  "Crown status": "樹冠狀況",
+  "Other state": "其他狀況",
+  "Proposed treatment": "建議處置",
+  "Root treatment": "根部處置",
+  "Root collar treatment": "根領處置",
+  "Trunk treatment": "樹幹處置",
+  "Crown collar treatment": "樹冠基部處置",
+  "Crown treatment": "樹冠處置",
+  "Other treatment": "其他處置",
+  "Wind": "風載重",
+  "Wind model:": "風載重模型：",
+  "Wind velocity:": "風速：",
+  "Terrain:": "地形類別：",
+  "Terrain category:": "地形類別：",
+  "Base wind velocity:": "基本風速：",
+  "Dry air temp.:": "乾空氣溫度：",
+  "Dry air temp:": "乾空氣溫度：",
+  "Crown": "樹冠",
+  "Crown model:": "樹冠模型：",
+  "Area:": "面積：",
+  "Top height:": "頂部高度：",
+  "Center height:": "中心高度：",
+  "Bottom height:": "底部高度：",
+  "Width:": "寬度：",
+  "Height:": "高度：",
+  "Shape factor:": "形狀係數：",
+  "Trunk": "樹幹",
+  "Degree of lean:": "傾斜角度：",
+  "Direction of lean:": "傾斜方向：",
+  "Tree": "樹木",
+  "Wind load:": "風力負荷：",
+  "Weighted center height:": "加權中心高度：",
+  "Drag factor:": "阻力係數：",
+  "Yield strength": "降伏強度",
+  "Yield strength:": "降伏強度：",
+  "Layer name": "切面名稱",
+  "Height": "高度",
+  "Decayed area": "腐朽面積",
+  "Safety factor": "安全係數",
+  "Risk rating": "風險等級",
+  "Scheme": "幾何形狀",
+  "Sensor count": "感測器數量",
+  "Ludwig sensors": "Ludwig 輔助盲釘",
+  "Circumference": "樹圍",
+  "Penetration depth": "貫入深度",
+  "Bark thickness": "樹皮厚度"
+};
+
+const W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+
+function calcAvgTRStr(decayedStr) {
+  const m = String(decayedStr).match(/(\d+(?:\.\d+)?)/);
+  if (!m) return "";
+  const pct = parseFloat(m[1]);
+  const ratio = Math.max(0, Math.min(1, pct / 100.0));
+  const val = 1.0 - Math.sqrt(ratio);
+  const floored = Math.floor(val * 100.0 + 1e-9) / 100.0;
+  return floored.toFixed(2);
+}
+
+const CRC_TABLE = (function() {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) {
+      c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[i] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(bytes) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) {
+    crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+async function inflateRaw(compressedBytes) {
+  const ds = new DecompressionStream("deflate-raw");
+  const stream = new Blob([compressedBytes]).stream().pipeThrough(ds);
+  const buf = await new Response(stream).arrayBuffer();
+  return new Uint8Array(buf);
+}
+
+async function readZip(arrayBuffer) {
+  const bytes = new Uint8Array(arrayBuffer);
+  const view = new DataView(arrayBuffer);
+  const decoder = new TextDecoder("utf-8");
+
+  let eocdOffset = -1;
+  const minSearch = Math.max(0, bytes.length - 65557);
+  for (let i = bytes.length - 22; i >= minSearch; i--) {
+    if (view.getUint32(i, true) === 0x06054b50) {
+      eocdOffset = i;
+      break;
+    }
+  }
+  if (eocdOffset === -1) throw new Error("無法讀取 .docx 檔案結構（無效的 ZIP 格式）");
+
+  const totalEntries = view.getUint16(eocdOffset + 10, true);
+  const cdOffset = view.getUint32(eocdOffset + 16, true);
+
+  const entries = [];
+  let ptr = cdOffset;
+  for (let i = 0; i < totalEntries; i++) {
+    if (view.getUint32(ptr, true) !== 0x02014b50) throw new Error("中央目錄標頭損毀");
+    const method = view.getUint16(ptr + 10, true);
+    const compSize = view.getUint32(ptr + 20, true);
+    const fnLen = view.getUint16(ptr + 28, true);
+    const extraLen = view.getUint16(ptr + 30, true);
+    const commentLen = view.getUint16(ptr + 32, true);
+    const localOffset = view.getUint32(ptr + 42, true);
+    const name = decoder.decode(bytes.subarray(ptr + 46, ptr + 46 + fnLen));
+
+    const localFnLen = view.getUint16(localOffset + 26, true);
+    const localExtraLen = view.getUint16(localOffset + 28, true);
+    const dataStart = localOffset + 30 + localFnLen + localExtraLen;
+    const compData = bytes.subarray(dataStart, dataStart + compSize);
+
+    let data;
+    if (method === 0) data = new Uint8Array(compData);
+    else if (method === 8) data = await inflateRaw(compData);
+    else throw new Error("不支援的壓縮方式: " + method);
+
+    entries.push({ name: name, data: data });
+    ptr += 46 + fnLen + extraLen + commentLen;
+  }
+  return entries;
+}
+
+function buildZip(entries) {
+  const encoder = new TextEncoder();
+  const localChunks = [];
+  const cdChunks = [];
+  let offset = 0;
+
+  for (let idx = 0; idx < entries.length; idx++) {
+    const entry = entries[idx];
+    const nameBytes = encoder.encode(entry.name);
+    const data = entry.data;
+    const sum = crc32(data);
+
+    const lfh = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(lfh.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, 0, true);
+    lv.setUint16(10, 0, true);
+    lv.setUint16(12, 0x0021, true);
+    lv.setUint32(14, sum, true);
+    lv.setUint32(18, data.length, true);
+    lv.setUint32(22, data.length, true);
+    lv.setUint16(26, nameBytes.length, true);
+    lv.setUint16(28, 0, true);
+    lfh.set(nameBytes, 30);
+    localChunks.push(lfh, data);
+
+    const cdh = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(cdh.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0x0021, true);
+    cv.setUint32(16, sum, true);
+    cv.setUint32(20, data.length, true);
+    cv.setUint32(24, data.length, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    cdh.set(nameBytes, 46);
+    cdChunks.push(cdh);
+    offset += lfh.length + data.length;
+  }
+
+  const cdOffset = offset;
+  let cdSize = 0;
+  for (let i = 0; i < cdChunks.length; i++) cdSize += cdChunks[i].length;
+
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(4, 0, true);
+  ev.setUint16(6, 0, true);
+  ev.setUint16(8, entries.length, true);
+  ev.setUint16(10, entries.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, cdOffset, true);
+  ev.setUint16(20, 0, true);
+
+  return new Blob([].concat(localChunks, cdChunks, [eocd]), {
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  });
+}
+
+function getCellText(tc) {
+  const ts = tc.getElementsByTagNameNS(W_NS, "t");
+  let str = "";
+  for (let i = 0; i < ts.length; i++) str += ts[i].textContent || "";
+  return str.trim();
+}
+
+function setCellText(tc, text, fontName) {
+  const fn = fontName || "微軟正黑體";
+  const runs = tc.getElementsByTagNameNS(W_NS, "r");
+  if (!runs.length) return;
+  const firstRun = runs[0];
+  const ts = firstRun.getElementsByTagNameNS(W_NS, "t");
+  if (ts.length) {
+    ts[0].textContent = text;
+    for (let i = 1; i < ts.length; i++) ts[i].textContent = "";
+  }
+  for (let r = 1; r < runs.length; r++) {
+    const rts = runs[r].getElementsByTagNameNS(W_NS, "t");
+    for (let i = 0; i < rts.length; i++) rts[i].textContent = "";
+  }
+  let rPr = firstRun.getElementsByTagNameNS(W_NS, "rPr")[0];
+  if (!rPr) {
+    rPr = tc.ownerDocument.createElementNS(W_NS, "w:rPr");
+    firstRun.insertBefore(rPr, firstRun.firstChild);
+  }
+  let rFonts = rPr.getElementsByTagNameNS(W_NS, "rFonts")[0];
+  if (!rFonts) {
+    rFonts = tc.ownerDocument.createElementNS(W_NS, "w:rFonts");
+    rPr.insertBefore(rFonts, rPr.firstChild);
+  }
+  rFonts.setAttributeNS(W_NS, "w:eastAsia", fn);
+}
+
+function transformDocumentXml(rawXmlString, customAvgTrList) {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(rawXmlString, "application/xml");
+  const tables = xmlDoc.getElementsByTagNameNS(W_NS, "tbl");
+  let translatedCount = 0;
+  const layersSummary = [];
+
+  for (let t = 0; t < tables.length; t++) {
+    const tbl = tables[t];
+    const trs = Array.from(tbl.children).filter(function(el) { return el.localName === "tr"; });
+    if (!trs.length) continue;
+
+    const firstRowTcs = Array.from(trs[0].children).filter(function(el) { return el.localName === "tc"; });
+    if (trs.length >= 5 && firstRowTcs.length >= 5) continue;
+
+    const headerTexts = firstRowTcs.map(function(tc) { return getCellText(tc); });
+    const isLayersTable =
+      firstRowTcs.length === 5 &&
+      headerTexts.indexOf("Layer name") !== -1 &&
+      headerTexts.indexOf("Decayed area") !== -1;
+
+    for (let r = 0; r < trs.length; r++) {
+      const tcs = Array.from(trs[r].children).filter(function(el) { return el.localName === "tc"; });
+      const numCols = tcs.length;
+      for (let c = 0; c < numCols; c++) {
+        const isItemCell = (numCols <= 2 && c === 0) || (isLayersTable && r === 0);
+        if (!isItemCell) continue;
+        const txt = getCellText(tcs[c]);
+        if (Object.prototype.hasOwnProperty.call(ITEM_TRANSLATIONS, txt)) {
+          setCellText(tcs[c], ITEM_TRANSLATIONS[txt]);
+          translatedCount++;
+        }
+      }
+    }
+
+    if (isLayersTable) {
+      const decayedIdx = headerTexts.indexOf("Decayed area");
+      const tblGrid = Array.from(tbl.children).filter(function(el) { return el.localName === "tblGrid"; })[0];
+      if (tblGrid) {
+        const gridCols = Array.from(tblGrid.children).filter(function(el) { return el.localName === "gridCol"; });
+        if (gridCols.length > 0) {
+          let totalW = 0;
+          gridCols.forEach(function(gc) {
+            totalW += parseInt(gc.getAttributeNS(W_NS, "w") || gc.getAttribute("w:w") || "1842", 10);
+          });
+          const eachW = String(Math.floor(totalW / 6));
+          gridCols.forEach(function(gc) { gc.setAttributeNS(W_NS, "w:w", eachW); });
+          while (Array.from(tblGrid.children).filter(function(el) { return el.localName === "gridCol"; }).length < 6) {
+            const newGc = xmlDoc.createElementNS(W_NS, "w:gridCol");
+            newGc.setAttributeNS(W_NS, "w:w", eachW);
+            tblGrid.appendChild(newGc);
+          }
+        }
+      }
+
+      for (let r = 0; r < trs.length; r++) {
+        const tcs = Array.from(trs[r].children).filter(function(el) { return el.localName === "tc"; });
+        const refTc = tcs[decayedIdx];
+        const newTc = refTc.cloneNode(true);
+
+        if (r === 0) {
+          setCellText(newTc, "平均殘留壁厚比 (Avg. T/R)");
+        } else {
+          const layerName = getCellText(tcs[0]);
+          const heightVal = getCellText(tcs[1]);
+          const decayedVal = getCellText(refTc);
+          const safetyVal = getCellText(tcs[3]);
+          const riskVal = getCellText(tcs[4]);
+
+          const avgTr = (customAvgTrList && customAvgTrList[r - 1] !== undefined)
+            ? customAvgTrList[r - 1]
+            : calcAvgTRStr(decayedVal);
+
+          setCellText(newTc, avgTr);
+          layersSummary.push({
+            layerName: layerName,
+            height: heightVal,
+            decayedArea: decayedVal,
+            avgTR: avgTr,
+            safetyFactor: safetyVal,
+            riskRating: riskVal
+          });
+        }
+
+        refTc.parentNode.insertBefore(newTc, refTc.nextSibling);
+
+        const updatedTcs = Array.from(trs[r].children).filter(function(el) { return el.localName === "tc"; });
+        let rowTotalW = 0;
+        updatedTcs.forEach(function(tc) {
+          const tcPr = Array.from(tc.children).filter(function(el) { return el.localName === "tcPr"; })[0];
+          const tcW = tcPr ? Array.from(tcPr.children).filter(function(el) { return el.localName === "tcW"; })[0] : null;
+          if (tcW) {
+            rowTotalW += parseInt(tcW.getAttributeNS(W_NS, "w") || tcW.getAttribute("w:w") || "1842", 10);
+          }
+        });
+        if (rowTotalW > 0) {
+          const cellW = String(Math.floor(rowTotalW / updatedTcs.length));
+          updatedTcs.forEach(function(tc) {
+            const tcPr = Array.from(tc.children).filter(function(el) { return el.localName === "tcPr"; })[0];
+            const tcW = tcPr ? Array.from(tcPr.children).filter(function(el) { return el.localName === "tcW"; })[0] : null;
+            if (tcW) tcW.setAttributeNS(W_NS, "w:w", cellW);
+          });
+        }
+      }
+    }
+  }
+
+  const serializer = new XMLSerializer();
+  return {
+    xml: serializer.serializeToString(xmlDoc),
+    translatedCount: translatedCount,
+    layersSummary: layersSummary
+  };
+}
+
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+}
+
+async function handleDocxFiles(fileList) {
+  const container = document.getElementById("resultsContainer");
+  for (let i = 0; i < fileList.length; i++) {
+    const file = fileList[i];
+    if (!file.name.toLowerCase().endsWith(".docx")) continue;
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const entries = await readZip(arrayBuffer);
+      const docEntry = entries.find(function(e) { return e.name === "word/document.xml"; });
+      if (!docEntry) throw new Error("找不到 word/document.xml，請確認是否為有效的 Word 報告檔。");
+
+      const decoder = new TextDecoder("utf-8");
+      const encoder = new TextEncoder();
+      const rawXml = decoder.decode(docEntry.data);
+
+      const res = transformDocumentXml(rawXml, null);
+      const outEntries = entries.map(function(e) {
+        return e.name === "word/document.xml" ? { name: e.name, data: encoder.encode(res.xml) } : e;
+      });
+      const outBlob = buildZip(outEntries);
+      const outName = file.name.replace(/\.docx$/i, "") + "_繁體中文版.docx";
+
+      triggerBlobDownload(outBlob, outName);
+      renderDocxResultCard(container, file.name, outName, rawXml, entries, res.translatedCount, res.layersSummary);
+    } catch (err) {
+      const errBox = document.createElement("div");
+      errBox.className = "card";
+      errBox.style.borderColor = "#fca5a5";
+      errBox.innerHTML = '<strong style="color:#b91c1c;">轉換失敗（' + escapeHtml(file.name) + "）：</strong> " + escapeHtml(err.message);
+      container.prepend(errBox);
+    }
+  }
+}
+
+function renderDocxResultCard(container, origName, outName, rawXml, entries, translatedCount, layersSummary) {
+  const box = document.createElement("div");
+  box.className = "card";
+
+  let tableHtml = "";
+  if (layersSummary.length > 0) {
+    const rowsHtml = layersSummary.map(function(row, idx) {
+      const trNum = parseFloat(row.avgTR);
+      const statusBadge = (!isNaN(trNum) && trNum < 0.3)
+        ? '<span class="badge-warn">低於 0.30 警戒線</span>'
+        : '<span class="badge-ok">≥ 0.30</span>';
+      return (
+        "<tr>" +
+          "<td>" + escapeHtml(row.layerName) + "</td>" +
+          "<td>" + escapeHtml(row.height) + "</td>" +
+          "<td>" + escapeHtml(row.decayedArea) + "</td>" +
+          "<td>" +
+            '<input type="text" class="tr-input" data-idx="' + idx + '" value="' + escapeHtml(row.avgTR) + '" />' +
+            '<div style="margin-top:4px;">' + statusBadge + "</div>" +
+          "</td>" +
+          "<td>" + escapeHtml(row.safetyFactor) + "</td>" +
+          "<td>" + escapeHtml(row.riskRating) + "</td>" +
+        "</tr>"
+      );
+    }).join("");
+
+    tableHtml =
+      '<div style="margin-top:12px; font-size:13.5px; font-weight:600; color:#334155;">' +
+        "已自動計算並寫入 Word 報告之「切面安全評估總表」預覽：" +
+      "</div>" +
+      '<table class="docx-preview-tbl">' +
+        "<thead><tr>" +
+          "<th>切面名稱</th><th>高度</th><th>腐朽面積</th><th>平均殘留壁厚比 (Avg. T/R)</th><th>安全係數</th><th>風險等級</th>" +
+        "</tr></thead>" +
+        "<tbody>" + rowsHtml + "</tbody>" +
+      "</table>" +
+      '<div style="font-size:12.5px; color:#64748b; margin-top:10px;">' +
+        "💡 提示：系統已依公式 <code>1 - √(腐朽面積比例)</code> 自動計算 Avg. T/R 並立即下載檔案。若需微調數值，可直接修改上方輸入框後點擊「套用修改並重新下載」。" +
+      "</div>";
+  }
+
+  box.innerHTML =
+    '<div class="result-header">' +
+      "<div>" +
+        '<div class="result-title">✅ 已完成轉換：' + escapeHtml(outName) + "</div>" +
+        '<div style="font-size:13px; color:#64748b;">來源檔案：' + escapeHtml(origName) + " ｜ 已轉換 " + translatedCount + " 個表格項目並插入 Avg. T/R 欄位</div>" +
+      "</div>" +
+      '<button type="button" class="btn-outline redownload-btn">⬇ 套用修改並重新下載</button>' +
+    "</div>" +
+    tableHtml;
+
+  box.querySelector(".redownload-btn").addEventListener("click", function() {
+    const inputs = Array.from(box.querySelectorAll(".tr-input"));
+    const customList = inputs.length ? inputs.map(function(inp) { return inp.value.trim(); }) : null;
+    const encoder = new TextEncoder();
+    const res = transformDocumentXml(rawXml, customList);
+    const outEntries = entries.map(function(e) {
+      return e.name === "word/document.xml" ? { name: e.name, data: encoder.encode(res.xml) } : e;
+    });
+    const outBlob = buildZip(outEntries);
+    triggerBlobDownload(outBlob, outName);
+  });
+
+  container.prepend(box);
+}
+
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+document.getElementById("pickBtn").addEventListener("click", function(e) {
+  e.stopPropagation();
+  fileInput.click();
+});
+dropzone.addEventListener("click", function() { fileInput.click(); });
+fileInput.addEventListener("change", function(e) {
+  if (e.target.files.length) handleDocxFiles(e.target.files);
+  fileInput.value = "";
+});
+dropzone.addEventListener("dragover", function(e) {
+  e.preventDefault();
+  dropzone.classList.add("dragover");
+});
+dropzone.addEventListener("dragleave", function() { dropzone.classList.remove("dragover"); });
+dropzone.addEventListener("drop", function(e) {
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
+  if (e.dataTransfer.files.length) handleDocxFiles(e.dataTransfer.files);
+});
+
+// =========================================================================
+// INITIALIZE ALL MODULES
+// =========================================================================
+loadLocalData();
+renderTrees();
+updateSchemeUI();
+toggleWindModelUI();
+renderLayerEditor();
+recalculate();
+</script>
+</body>
+</html>
